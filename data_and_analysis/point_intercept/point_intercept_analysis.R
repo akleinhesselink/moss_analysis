@@ -97,8 +97,10 @@ coverLong$Category
 
 #### plot cover over gradient 
 xTitle = xlab_distance
-yTitle1 = "Proportion cover per transect"
+yTitle1 = "Proportion cover"
 yTitle2 = "Probability of plant rooted at point"
+
+coverLong$Category = factor( coverLong$Category,levels=c('Moss patch', 'Bare sand', 'Shrub patch', 'ericameria', 'lupine'))
 
 p1 = ggplot(subset(coverLong, Category %in% c('Moss patch', 'Bare sand', 'Shrub patch')), 
             aes(x = distance, y = percentCover, color = Category, 
@@ -116,6 +118,7 @@ p1
 #### plot probability of plant being rooted in moss vs. bare ground 
 names(hit_data2)[2] <- "Category"
 levels(hit_data2$Category) <- c("Bare sand", "Moss patch")
+hit_data2$Category <- factor(hit_data2$Category, levels = c('Moss patch', 'Bare sand'))
 
 p2.base = ggplot(hit_data2, aes(x = transect, 
                            y = hit, 
@@ -125,19 +128,26 @@ p2.base = ggplot(hit_data2, aes(x = transect,
                            linetype = Category))
 
 p2 = p2.base +  
-  geom_line(aes(y = predicted)) + 
+  geom_line(aes(y = predicted), color = 'black', size = 0.8) + 
   ylab(yTitle2) + 
   xlab(xTitle) + 
   scale_color_grey(start= 0, end = 0.5) + 
   scale_linetype_manual(values= c(1, 2))  
 
-p3 = p2 + geom_point(size = 3) ### for legend 
-  
-p2.withSize = p2 + geom_ribbon(aes(ymin =lowerSE,
-                  ymax = upperSE), alpha = 0.4) + 
+p3 = p2 + geom_point(size = 3) + 
+  geom_ribbon(aes(ymin = lowerSE, ymax = upperSE, color = NULL), alpha = 0.4) + 
+  scale_fill_grey()  + 
+  guides(fill = guide_legend(override.aes = list(colour = NULL)))  
+
+p3
+
+p2.withSize = p2 + 
+  geom_ribbon(aes(ymin =lowerSE,
+                  ymax = upperSE, color = NULL), alpha = 0.4) + 
   geom_point(aes(size = counts)) +   
-  scale_size(range = c(2, 7), guide = 'none') + 
-  scale_fill_grey()
+  scale_size(range = c(2, 7), guide = 'none') +   
+  scale_fill_grey() + 
+  guides(fill = guide_legend(override.aes = list(colour = NULL)))
 
 p2.withSize #### for plot 
 
