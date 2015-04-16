@@ -118,14 +118,7 @@ fig3 = fig3 + geom_point(position = position_dodge(width = 0.2), size = 4) +
 
 fig3
 
-png("survival.png", width = 8, height = 5, units= "in", res = 300)
-fig1
-dev.off()
-
-png("biomass.png", width = 8, height = 5, units= "in", res = 300)
-fig2
-dev.off()
-
-png("infls.png", width= 8, height = 5, units= "in", res = 300)
-fig3
-dev.off()
+dir.create(path = '../figures')
+ggsave(path= '../figures', filename='survival.png', plot=fig1, width= 8, height = 5, units = 'in', dpi= 300)
+ggsave(path = '../figures', filename = 'biomass.png', plot= fig2, width = 8, height = 5, units = 'in', dpi = 300)
+ggsave(path = '../figures', filename = "infls.png", plot = fig3, width= 8, height = 5, units= "in", dpi = 300)

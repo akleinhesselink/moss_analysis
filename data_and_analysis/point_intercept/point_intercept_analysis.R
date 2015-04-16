@@ -131,7 +131,7 @@ p2 = p2.base +
   scale_color_grey(start= 0, end = 0.5) + 
   scale_linetype_manual(values= c(1, 2))  
 
-p2 + geom_point(size = 3) ### for legend 
+p3 = p2 + geom_point(size = 3) ### for legend 
   
 p2.withSize = p2 + geom_ribbon(aes(ymin =lowerSE,
                   ymax = upperSE), alpha = 0.4) + 
@@ -141,7 +141,10 @@ p2.withSize = p2 + geom_ribbon(aes(ymin =lowerSE,
 
 p2.withSize #### for plot 
 
-
+dir.create('../figures' )
+ggsave(filename='../figures/cover_on_transect.png', plot= p1, height= 5, width = 8, units= 'in', dpi = 300)
+ggsave(filename= '../figures/rooted_in_moss.png', plot = p2.withSize, height = 5, width = 8, units = 'in', dpi = 300)
+ggsave(filename= '../figures/rooted_in_moss_legend.png', plot = p3, height = 5, width = 8, units = 'in', dpi = 300 )
 
 ######
 ######
