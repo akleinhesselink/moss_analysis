@@ -46,6 +46,7 @@ pid$hit[pid$species != 0 ] = 1
 pid$hit[pid$species == 0 ] = 0
 
 no_shrub = subset(pid, cover_category %in% c('bare', 'moss'))
+
 no_shrub$cover_category = factor(no_shrub$cover_category)
 no_shrub$cover_category
 
@@ -81,8 +82,6 @@ tail(hit_data2)
 
 hit_data2[ hit_data2$cover_category == 'bare', 'counts'] <- cover_counts$bare
 hit_data2[ hit_data2$cover_category == 'moss', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
-
-hit_data2
 
 p = ggplot(hit_data2, aes(x = transect, y = hit, fill = cover_category, color = cover_category))
 p + geom_point( aes(size = counts))
@@ -137,7 +136,7 @@ p2 = p2.base +
 p3 = p2 + geom_point(size = 3) + 
   geom_ribbon(aes(ymin = lowerSE, ymax = upperSE, color = NULL), alpha = 0.4) + 
   scale_fill_grey()  + 
-  guides(fill = guide_legend(override.aes = list(colour = NULL)))  
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) 
 
 p3
 
@@ -213,5 +212,81 @@ lines(sm.spline(gam1$model$Covariate , response1$fit-1.96*response1$se) , lty = 
 lines(sm.spline(gam2$model$Covariate , response0$fit) , lwd = 3 , col = "green")
 lines(sm.spline(gam2$model$Covariate, response0$fit + 1.96 * response0$se) , lty = 3 , lwd = 2, col = "green")
 lines(sm.spline(gam2$model$Covariate, response0$fit - 1.96 * response0$se) , lty = 3 , lwd = 2 , col = "green")
+
+
+######## species specific analysis          #####################
+table(pid$cover_category)
+speciesTable = table(pid$species)
+barplot(speciesTable, horiz= TRUE, las = 2)
+
+######## vulpia hits in moss and bare sand sub-analysis #########
+pid$vHit[ pid$species == 'vubr' ] <- 1
+pid$vHit[ is.na(pid$vHit)  ] <- 0
+
+no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
+
+vHitsAgg = aggregate( vHit ~ transect + cover_category, no_shrub, FUN = function(x){ sum(x)/25})
+
+vHitsAgg[ vHitsAgg$cover_category == 'bare', 'counts'] <- cover_counts$bare
+vHitsAgg[ vHitsAgg$cover_category == 'moss', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
+
+vm1 = glm(vHit ~ transect*cover_category, no_shrub, family = 'binomial')
+summary(vm1)
+vulpPredDF = cbind( no_shrub, predictedVulpia = predict(vm1), se = predict(vm1, se.fit = TRUE)$se.fit )
+
+vulpPredDF$upperSE = expit(vulpPredDF$predictedVulpia + vulpPredDF$se)
+vulpPredDF$lowerSE = expit(vulpPredDF$predictedVulpia - vulpPredDF$se)
+vulpPredDF$pred = expit(vulpPredDF$predictedVulpia)
+
+vulpPredDF$cover_category <- factor(vulpPredDF$cover_category, levels = c('moss', 'bare'))
+levels( vulpPredDF$cover_category ) <- c('Moss patch', 'Bare sand')
+names(vulpPredDF )[ 3] <- 'Category'
+
+summary(vulpPredDF)
+
+vHitsAgg = aggregate( vHit ~ transect*Category, vulpPredDF , FUN = 'mean')
+
+ggplot(vulpPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
+  geom_line( aes(linetype = Category)) + 
+  geom_ribbon (aes( ymin = upperSE, ymax = lowerSE), alpha = 0.2, color = NA) + 
+  scale_color_grey() +
+  scale_fill_grey() + 
+  ylab('Probability of Vulpia rooted at point') + 
+  xlab( xlab_distance) + 
+  geom_point(data = vHitsAgg, aes(y = vHit, shape = cover_category, color = cover_category, fill = cover_category, size = counts)) 
+
+vulpiaHits = subset(pid, species == 'vubr')
+vulpiaHits$species <- factor(vulpiaHits$species)
+vulpiaHits
+table(vulpiaHits$cover_category, vulpiaHits$species, vulpiaHits$transect)
+
+p2.base = ggplot(hit_data2, aes(x = transect, 
+                                y = hit, 
+                                color = Category, 
+                                fill = Category, 
+                                shape = Category, 
+                                linetype = Category))
+
+p2 = p2.base +  
+  geom_line(aes(y = predicted), color = 'black', size = 0.8) + 
+  ylab(yTitle2) + 
+  xlab(xTitle) + 
+  scale_color_grey(start= 0, end = 0.5) + 
+  scale_linetype_manual(values= c(1, 2))  
+
+p3 = p2 + geom_point(size = 3) + 
+  geom_ribbon(aes(ymin = lowerSE, ymax = upperSE, color = NULL), alpha = 0.4) + 
+  scale_fill_grey()  + 
+  guides(fill = guide_legend(override.aes = list(colour = NULL))) 
+
+p3
+
+p2.withSize = p2 + 
+  geom_ribbon(aes(ymin =lowerSE,
+                  ymax = upperSE, color = NULL), alpha = 0.4) + 
+  geom_point(aes(size = counts)) +   
+  scale_size(range = c(2, 7), guide = 'none') +   
+  scale_fill_grey() + 
+  guides(fill = guide_legend(override.aes = list(colour = NULL)))
 
 
