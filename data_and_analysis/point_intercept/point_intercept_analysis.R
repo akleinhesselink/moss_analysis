@@ -179,20 +179,15 @@ prop_hit = merge(points, sum_hits)
 prop_hit$success_prob = prop_hit$hit/prop_hit$points
 prop_hit$no_hit = prop_hit$points - prop_hit$hit 
 
-hist(logit(prop_hit$success_prob))
-logit(prop_hit$success_prob)
-
 p2 = ggplot(prop_hit, aes(x = transect, y = success_prob, color = cover_category)) 
 p2 + geom_point() + geom_smooth(method = 'lm', se = FALSE) + theme_bw() +
   ylab(yTitle2) + xlab(xTitle) 
 
 gam1 = with (prop_hit [ prop_hit$cover_category == 'bare', ], gam(cbind(hit, no_hit) ~  s(transect) ,family=binomial))
 gam2 = with (prop_hit [prop_hit$cover_category == 'moss', ], gam(cbind(hit, no_hit) ~ s(transect), family = binomial))
-gam3 = with (prop_hit)
 summary(gam1)
 summary(gam2)
 anova(gam1)
-
 
 plot(gam1)
 plot(gam2)
@@ -204,31 +199,35 @@ par(mfcol=c(1,1))
 plot(0, type="n", bty="n", main="Fancy GAM plot", xlab="MyCovariate", ylab="MyResponse", lwd=3,ylim=c(0,60), xlim=c(0,200))
 legend("bottomright", bty="n", lwd=5, col=c("green","red"), legend=c("Strata = 0", "Strata = 1"))
 
+#lines(spline(gam1$model$Covariate , response1$fit) , lwd = 3 , col = "red")
+#lines(sm.spline(gam1$model$Covariate , response1$fit+1.96*response1$se) , lty = 3 , lwd = 2 , col = "red")
+#lines(sm.spline(gam1$model$Covariate , response1$fit-1.96*response1$se) , lty = 3 , lwd = 2 , col = "red")
 
-lines(spline(gam1$model$Covariate , response1$fit) , lwd = 3 , col = "red")
-lines(sm.spline(gam1$model$Covariate , response1$fit+1.96*response1$se) , lty = 3 , lwd = 2 , col = "red")
-lines(sm.spline(gam1$model$Covariate , response1$fit-1.96*response1$se) , lty = 3 , lwd = 2 , col = "red")
-
-lines(sm.spline(gam2$model$Covariate , response0$fit) , lwd = 3 , col = "green")
-lines(sm.spline(gam2$model$Covariate, response0$fit + 1.96 * response0$se) , lty = 3 , lwd = 2, col = "green")
-lines(sm.spline(gam2$model$Covariate, response0$fit - 1.96 * response0$se) , lty = 3 , lwd = 2 , col = "green")
-
+#lines(sm.spline(gam2$model$Covariate , response0$fit) , lwd = 3 , col = "green")
+#lines(sm.spline(gam2$model$Covariate, response0$fit + 1.96 * response0$se) , lty = 3 , lwd = 2, col = "green")
+#lines(sm.spline(gam2$model$Covariate, response0$fit - 1.96 * response0$se) , lty = 3 , lwd = 2 , col = "green")
 
 ######## species specific analysis          #####################
-table(pid$cover_category)
-speciesTable = table(pid$species)
+no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
+
+table(no_shrub$cover_category)
+speciesTable = table(no_shrub$species)
 barplot(speciesTable, horiz= TRUE, las = 2)
+
+spTableByCat = table(no_shrub$species, no_shrub$cover_category)
+
+spTableByCat = data.frame(spTableByCat)
+
+spTableByCat = spTableByCat[ spTableByCat$Var2 %in% c('moss', 'bare'),  ]
+
+ggplot(spTableByCat, aes(x = Var1, y = Freq, fill = Var2)) + 
+  geom_bar( stat = 'identity', position = 'dodge') + coord_flip()
 
 ######## vulpia hits in moss and bare sand sub-analysis #########
 pid$vHit[ pid$species == 'vubr' ] <- 1
 pid$vHit[ is.na(pid$vHit)  ] <- 0
 
 no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
-
-vHitsAgg = aggregate( vHit ~ transect + cover_category, no_shrub, FUN = function(x){ sum(x)/25})
-
-vHitsAgg[ vHitsAgg$cover_category == 'bare', 'counts'] <- cover_counts$bare
-vHitsAgg[ vHitsAgg$cover_category == 'moss', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
 
 vm1 = glm(vHit ~ transect*cover_category, no_shrub, family = 'binomial')
 summary(vm1)
@@ -240,11 +239,13 @@ vulpPredDF$pred = expit(vulpPredDF$predictedVulpia)
 
 vulpPredDF$cover_category <- factor(vulpPredDF$cover_category, levels = c('moss', 'bare'))
 levels( vulpPredDF$cover_category ) <- c('Moss patch', 'Bare sand')
+
 names(vulpPredDF )[ 3] <- 'Category'
 
-summary(vulpPredDF)
-
 vHitsAgg = aggregate( vHit ~ transect*Category, vulpPredDF , FUN = 'mean')
+
+vHitsAgg[ vHitsAgg$Category == 'Bare sand', 'counts'] <- cover_counts$bare
+vHitsAgg[ vHitsAgg$Category == 'Moss patch', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
 
 ggplot(vulpPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
   geom_line( aes(linetype = Category)) + 
@@ -252,41 +253,41 @@ ggplot(vulpPredDF , aes(x = transect, shape = Category, fill = Category, color =
   scale_color_grey() +
   scale_fill_grey() + 
   ylab('Probability of Vulpia rooted at point') + 
-  xlab( xlab_distance) + 
-  geom_point(data = vHitsAgg, aes(y = vHit, shape = cover_category, color = cover_category, fill = cover_category, size = counts)) 
+  xlab( xlab_distance) +   
+  geom_point(data = vHitsAgg, aes(y = vHit, size = counts))
+             
 
-vulpiaHits = subset(pid, species == 'vubr')
-vulpiaHits$species <- factor(vulpiaHits$species)
-vulpiaHits
-table(vulpiaHits$cover_category, vulpiaHits$species, vulpiaHits$transect)
+###################### Bromus hits in moss analysis ###############
+pid$bHit[ pid$species == 'brdi' ] <- 1
+pid$bHit[ is.na(pid$bHit)  ] <- 0
 
-p2.base = ggplot(hit_data2, aes(x = transect, 
-                                y = hit, 
-                                color = Category, 
-                                fill = Category, 
-                                shape = Category, 
-                                linetype = Category))
+no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
 
-p2 = p2.base +  
-  geom_line(aes(y = predicted), color = 'black', size = 0.8) + 
-  ylab(yTitle2) + 
-  xlab(xTitle) + 
-  scale_color_grey(start= 0, end = 0.5) + 
-  scale_linetype_manual(values= c(1, 2))  
+vm1 = glm(bHit ~ transect*cover_category, no_shrub, family = 'binomial')
+summary(vm1)
+brdiPredDF = cbind( no_shrub, predictedVulpia = predict(vm1), se = predict(vm1, se.fit = TRUE)$se.fit )
 
-p3 = p2 + geom_point(size = 3) + 
-  geom_ribbon(aes(ymin = lowerSE, ymax = upperSE, color = NULL), alpha = 0.4) + 
-  scale_fill_grey()  + 
-  guides(fill = guide_legend(override.aes = list(colour = NULL))) 
+brdiPredDF$upperSE = expit(brdiPredDF$predictedVulpia + brdiPredDF$se)
+brdiPredDF$lowerSE = expit(brdiPredDF$predictedVulpia - brdiPredDF$se)
+brdiPredDF$pred = expit(brdiPredDF$predictedVulpia)
 
-p3
+brdiPredDF$cover_category <- factor(brdiPredDF$cover_category, levels = c('moss', 'bare'))
+levels( brdiPredDF$cover_category ) <- c('Moss patch', 'Bare sand')
 
-p2.withSize = p2 + 
-  geom_ribbon(aes(ymin =lowerSE,
-                  ymax = upperSE, color = NULL), alpha = 0.4) + 
-  geom_point(aes(size = counts)) +   
-  scale_size(range = c(2, 7), guide = 'none') +   
+names(brdiPredDF )[ 3] <- 'Category'
+
+bHitsAgg = aggregate( bHit ~ transect*Category, brdiPredDF , FUN = 'mean')
+
+bHitsAgg[ bHitsAgg$Category == 'Bare sand', 'counts'] <- cover_counts$bare
+bHitsAgg[ bHitsAgg$Category == 'Moss patch', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
+
+ggplot(brdiPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
+  geom_line( aes(linetype = Category)) + 
+  geom_ribbon (aes( ymin = upperSE, ymax = lowerSE), alpha = 0.2, color = NA) + 
+  scale_color_grey() +
   scale_fill_grey() + 
-  guides(fill = guide_legend(override.aes = list(colour = NULL)))
+  ylab('Probability of Vulpia rooted at point') + 
+  xlab( xlab_distance) +   
+  geom_point(data = bHitsAgg, aes(y = bHit, size = counts))
 
 

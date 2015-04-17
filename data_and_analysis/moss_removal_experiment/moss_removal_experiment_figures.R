@@ -31,6 +31,9 @@ levels(b$stress) = c('Low stress', 'High stress')
 levels(v$treatment) = c('Bare sand', 'Moss patch', 'Moss removed')
 levels(b$treatment) = c('Bare sand', 'Moss patch', 'Moss removed')
 
+v$treatment <- factor(v$treatment, levels= c('Moss patch', 'Bare sand', 'Moss removed'))
+b$treatment <- factor(b$treatment, levels= c('Moss patch', 'Bare sand', 'Moss removed'))
+
 v$prop_success = v$final_count/v$trials
 b$prop_success = b$final_count/b$trials
 v$l_mass = log(v$mass_per_plant_mg)
@@ -71,7 +74,7 @@ names(infls)[1:2] <- c('Treatment', 'Stress')
 
 #### plot parameters
 xTitle = "Position on environmental gradient"
-yTitle1 = 'Fraction of seeds germinating\nand surviving to maturity'
+yTitle1 = 'Probability of seed germinating\nand surviving to mature plant'
 yTitle2 = 'Mean plant size (log g)'
 yTitle3 = 'Inflorescences per plant (no.)'
 
