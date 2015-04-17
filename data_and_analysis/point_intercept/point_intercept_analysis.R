@@ -57,6 +57,9 @@ summary(no_shrub)
 ###### center distances at midpoint of range 
 no_shrub$transect2 = no_shrub$transect - median(range(no_shrub$transect)) 
 
+hit_mod.binomial = glm(hit ~ transect2*cover_category, data = no_shrub, family = 'binomial')
+summary(hit_mod.binomial)
+
 hit_mod1 = glm(hit ~ transect2*cover_category, data = no_shrub, family = 'quasibinomial')
 summary(hit_mod1)
 anova(hit_mod1)
@@ -179,33 +182,6 @@ prop_hit = merge(points, sum_hits)
 prop_hit$success_prob = prop_hit$hit/prop_hit$points
 prop_hit$no_hit = prop_hit$points - prop_hit$hit 
 
-p2 = ggplot(prop_hit, aes(x = transect, y = success_prob, color = cover_category)) 
-p2 + geom_point() + geom_smooth(method = 'lm', se = FALSE) + theme_bw() +
-  ylab(yTitle2) + xlab(xTitle) 
-
-gam1 = with (prop_hit [ prop_hit$cover_category == 'bare', ], gam(cbind(hit, no_hit) ~  s(transect) ,family=binomial))
-gam2 = with (prop_hit [prop_hit$cover_category == 'moss', ], gam(cbind(hit, no_hit) ~ s(transect), family = binomial))
-summary(gam1)
-summary(gam2)
-anova(gam1)
-
-plot(gam1)
-plot(gam2)
-
-response1 <- predict(gam1, type="response", se.fit=T)
-response0 <- predict(gam2, type="response", se.fit=T)
-
-par(mfcol=c(1,1))
-plot(0, type="n", bty="n", main="Fancy GAM plot", xlab="MyCovariate", ylab="MyResponse", lwd=3,ylim=c(0,60), xlim=c(0,200))
-legend("bottomright", bty="n", lwd=5, col=c("green","red"), legend=c("Strata = 0", "Strata = 1"))
-
-#lines(spline(gam1$model$Covariate , response1$fit) , lwd = 3 , col = "red")
-#lines(sm.spline(gam1$model$Covariate , response1$fit+1.96*response1$se) , lty = 3 , lwd = 2 , col = "red")
-#lines(sm.spline(gam1$model$Covariate , response1$fit-1.96*response1$se) , lty = 3 , lwd = 2 , col = "red")
-
-#lines(sm.spline(gam2$model$Covariate , response0$fit) , lwd = 3 , col = "green")
-#lines(sm.spline(gam2$model$Covariate, response0$fit + 1.96 * response0$se) , lty = 3 , lwd = 2, col = "green")
-#lines(sm.spline(gam2$model$Covariate, response0$fit - 1.96 * response0$se) , lty = 3 , lwd = 2 , col = "green")
 
 ######## species specific analysis          #####################
 no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
@@ -247,7 +223,7 @@ vHitsAgg = aggregate( vHit ~ transect*Category, vulpPredDF , FUN = 'mean')
 vHitsAgg[ vHitsAgg$Category == 'Bare sand', 'counts'] <- cover_counts$bare
 vHitsAgg[ vHitsAgg$Category == 'Moss patch', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
 
-ggplot(vulpPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
+vulpPlot = ggplot(vulpPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
   geom_line( aes(linetype = Category)) + 
   geom_ribbon (aes( ymin = upperSE, ymax = lowerSE), alpha = 0.2, color = NA) + 
   scale_color_grey() +
@@ -256,6 +232,8 @@ ggplot(vulpPredDF , aes(x = transect, shape = Category, fill = Category, color =
   xlab( xlab_distance) +   
   geom_point(data = vHitsAgg, aes(y = vHit, size = counts))
              
+
+ggsave(filename= '../figures/vulpHits.png',  plot = vulpPlot, height= 5, width = 8, units= 'in', dpi = 300 )
 
 ###################### Bromus hits in moss analysis ###############
 pid$bHit[ pid$species == 'brdi' ] <- 1
@@ -281,7 +259,7 @@ bHitsAgg = aggregate( bHit ~ transect*Category, brdiPredDF , FUN = 'mean')
 bHitsAgg[ bHitsAgg$Category == 'Bare sand', 'counts'] <- cover_counts$bare
 bHitsAgg[ bHitsAgg$Category == 'Moss patch', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
 
-ggplot(brdiPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
+brdiPlot = ggplot(brdiPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
   geom_line( aes(linetype = Category)) + 
   geom_ribbon (aes( ymin = upperSE, ymax = lowerSE), alpha = 0.2, color = NA) + 
   scale_color_grey() +
@@ -289,5 +267,7 @@ ggplot(brdiPredDF , aes(x = transect, shape = Category, fill = Category, color =
   ylab('Probability of Vulpia rooted at point') + 
   xlab( xlab_distance) +   
   geom_point(data = bHitsAgg, aes(y = bHit, size = counts))
+
+ggsave(filename= '../figures/brdiHits.png',  plot = brdiPlot, height= 5, width = 8, units= 'in', dpi = 300 )
 
 

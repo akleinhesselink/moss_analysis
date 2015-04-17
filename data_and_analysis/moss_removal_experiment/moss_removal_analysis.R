@@ -22,13 +22,15 @@ summary(vm4)
 AIC(vm1, vm2, vm3,vm4)
 anova(vm1)
 anova(vm4, vm3, vm2, vm1)
-PBmodcomp(vm1, vm2)
-PBmodcomp(vm2, vm3)
-PBmodcomp(vm3, vm4)
+#PBmodcomp(vm1, vm2)
+#PBmodcomp(vm2, vm3)
+#PBmodcomp(vm3, vm4)
 
 mctest = glht(vm1, linfct = mcp(treatment = c(0, -1, 1)))
 summary(mctest, test = adjusted("single-step"))
+
 v1mct = lsmeans(vm1, pairwise ~ treatment|stress, adjust = 'tukey')
+v1mct
 
 v_success$lsmean = inv.logit(v1mct[[1]]$lsmean)
 v_success$lsmeanLCL = inv.logit(v1mct[[1]]$asymp.LCL)
@@ -36,7 +38,6 @@ v_success$lsmeanUCL = inv.logit(v1mct[[1]]$asymp.UCL)
 v_success
 
 ggplot(data = v, aes (x = stress, y = fitted(vm1), color = treatment)) + geom_point(position = position_dodge(width = 0.2))
-ggplot(data = v, aes(x = stress, y = fitted(vm1), color = treatment)) + geom_point(position = position_dodge(width = 0.2))
 
 #### --------- Vulpia mass per plant 
 vmass = lmer( l_mass ~ treatment + stress + treatment:stress + (1|block), data = v)
@@ -48,13 +49,16 @@ anova(vmass4, vmass3, vmass2, vmass)
 KRmodcomp(vmass, vmass2)
 KRmodcomp(vmass2, vmass3)
 KRmodcomp(vmass3, vmass4)
+
 v1massmct = lsmeans(vmass, pairwise ~ treatment|stress)
+v1massmct
 
 v_size$lsmean = v1massmct[[1]]$lsmean
 v_size$lsmeanLCL = v1massmct[[1]]$lower.CL
 v_size$lsmeanUCL = v1massmct[[1]]$upper.CL
 v_size[, 10:12] = exp(v_size[, 7:9])
 
+v_size
 
 hist(v$infls_per_plant)
 hist(v$infls)
