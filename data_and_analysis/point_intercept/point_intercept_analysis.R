@@ -188,6 +188,14 @@ no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
 
 table(no_shrub$cover_category)
 speciesTable = table(no_shrub$species)
+
+length(speciesTable)
+#### total non-shrub points: 
+sum(table(no_shrub$cover_category))
+#### total non-shrub points with plants: 
+sum(speciesTable[ -1])
+
+
 barplot(speciesTable, horiz= TRUE, las = 2)
 
 spTableByCat = table(no_shrub$species, no_shrub$cover_category)
@@ -232,7 +240,6 @@ vulpPlot = ggplot(vulpPredDF , aes(x = transect, shape = Category, fill = Catego
   xlab( xlab_distance) +   
   geom_point(data = vHitsAgg, aes(y = vHit, size = counts))
              
-
 ggsave(filename= '../figures/vulpHits.png',  plot = vulpPlot, height= 5, width = 8, units= 'in', dpi = 300 )
 
 ###################### Bromus hits in moss analysis ###############
@@ -243,11 +250,11 @@ no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
 
 vm1 = glm(bHit ~ transect*cover_category, no_shrub, family = 'binomial')
 summary(vm1)
-brdiPredDF = cbind( no_shrub, predictedVulpia = predict(vm1), se = predict(vm1, se.fit = TRUE)$se.fit )
+brdiPredDF = cbind( no_shrub, predictedHits = predict(vm1), se = predict(vm1, se.fit = TRUE)$se.fit )
 
-brdiPredDF$upperSE = expit(brdiPredDF$predictedVulpia + brdiPredDF$se)
-brdiPredDF$lowerSE = expit(brdiPredDF$predictedVulpia - brdiPredDF$se)
-brdiPredDF$pred = expit(brdiPredDF$predictedVulpia)
+brdiPredDF$upperSE = expit(brdiPredDF$predictedHits + brdiPredDF$se)
+brdiPredDF$lowerSE = expit(brdiPredDF$predictedHits - brdiPredDF$se)
+brdiPredDF$pred = expit(brdiPredDF$predictedHits)
 
 brdiPredDF$cover_category <- factor(brdiPredDF$cover_category, levels = c('moss', 'bare'))
 levels( brdiPredDF$cover_category ) <- c('Moss patch', 'Bare sand')
@@ -269,5 +276,40 @@ brdiPlot = ggplot(brdiPredDF , aes(x = transect, shape = Category, fill = Catego
   geom_point(data = bHitsAgg, aes(y = bHit, size = counts))
 
 ggsave(filename= '../figures/brdiHits.png',  plot = brdiPlot, height= 5, width = 8, units= 'in', dpi = 300 )
+
+###################### Annual grass hits in moss analysis ###############
+pid$aHit[ pid$species %in% c('brdi', 'vubr') ] <- 1
+pid$aHit[ is.na(pid$aHit)  ] <- 0
+
+no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
+
+vm1 = glm(aHit ~ transect*cover_category, no_shrub, family = 'binomial')
+summary(vm1)
+agrassPredDF = cbind( no_shrub, predictedHits = predict(vm1), se = predict(vm1, se.fit = TRUE)$se.fit )
+
+agrassPredDF$upperSE = expit(agrassPredDF$predictedHits + agrassPredDF$se)
+agrassPredDF$lowerSE = expit(agrassPredDF$predictedHits - agrassPredDF$se)
+agrassPredDF$pred = expit(agrassPredDF$predictedHits)
+
+agrassPredDF$cover_category <- factor(agrassPredDF$cover_category, levels = c('moss', 'bare'))
+levels( agrassPredDF$cover_category ) <- c('Moss patch', 'Bare sand')
+
+names(agrassPredDF )[ 3] <- 'Category'
+
+aHitsAgg = aggregate( aHit ~ transect*Category, agrassPredDF , FUN = 'mean')
+
+aHitsAgg[ aHitsAgg$Category == 'Bare sand', 'counts'] <- cover_counts$bare
+aHitsAgg[ aHitsAgg$Category == 'Moss patch', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
+
+agrassPlot = ggplot(agrassPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
+  geom_line( aes(linetype = Category)) + 
+  geom_ribbon (aes( ymin = upperSE, ymax = lowerSE), alpha = 0.2, color = NA) + 
+  scale_color_grey() +
+  scale_fill_grey() + 
+  ylab('Probability of Vulpia rooted at point') + 
+  xlab( xlab_distance) +   
+  geom_point(data = aHitsAgg, aes(y = aHit, size = counts))
+
+ggsave(filename= '../figures/agrassHits.png',  plot = agrassPlot, height= 5, width = 8, units= 'in', dpi = 300 )
 
 
