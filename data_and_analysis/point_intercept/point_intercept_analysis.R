@@ -7,6 +7,7 @@ library(mgcv)
 library(sm)
 library(ggplot2)
 library(grid)
+library(multcomp)
 
 source('../moss_theme.R')
 
@@ -54,15 +55,26 @@ no_shrub = no_shrub[, -c(2, 4)]
 head(no_shrub)
 summary(no_shrub)
 
+testTable = table( no_shrub$cover_category, no_shrub$hit) [ -c(2:4), ]
+testTable
+chisq.test(testTable)
+
 ###### center distances at midpoint of range 
 no_shrub$transect2 = no_shrub$transect - median(range(no_shrub$transect)) 
 
 hit_mod.binomial = glm(hit ~ transect2*cover_category, data = no_shrub, family = 'binomial')
 summary(hit_mod.binomial)
+anova(hit_mod.binomial)
 
 hit_mod1 = glm(hit ~ transect2*cover_category, data = no_shrub, family = 'quasibinomial')
 summary(hit_mod1)
-anova(hit_mod1)
+anova(hit_mod1, test= 'F')
+
+2*pt(0.825, df = 397, lower.tail= FALSE) 
+
+no_shrub$cover_reordered = factor(no_shrub$cover_category, levels = c('moss', 'bare'))
+hit_mod2 = glm( hit ~ transect2*cover_reordered, data = no_shrub, family = 'quasibinomial')
+summary(hit_mod2)
 
 predicted = data.frame(predict(hit_mod1, se.fit = TRUE))
 predicted$upperSE = predicted[, 1] + predicted[, 2]
@@ -195,7 +207,6 @@ sum(table(no_shrub$cover_category))
 #### total non-shrub points with plants: 
 sum(speciesTable[ -1])
 
-
 barplot(speciesTable, horiz= TRUE, las = 2)
 
 spTableByCat = table(no_shrub$species, no_shrub$cover_category)
@@ -212,6 +223,9 @@ pid$vHit[ pid$species == 'vubr' ] <- 1
 pid$vHit[ is.na(pid$vHit)  ] <- 0
 
 no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
+
+testTable = table(no_shrub$cover_category, no_shrub$vHit)[ -c(2:4), ]
+chisq.test(testTable)
 
 vm1 = glm(vHit ~ transect*cover_category, no_shrub, family = 'binomial')
 summary(vm1)
@@ -283,8 +297,16 @@ pid$aHit[ is.na(pid$aHit)  ] <- 0
 
 no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
 
+testMat = table( no_shrub$cover_category, no_shrub$aHit) [ -c(2:4), ]
+class(testMat)
+chisq.test( x= testMat)
+
+head(no_shrub)
+
 vm1 = glm(aHit ~ transect*cover_category, no_shrub, family = 'binomial')
 summary(vm1)
+anova(vm1, test = 'Chisq')
+
 agrassPredDF = cbind( no_shrub, predictedHits = predict(vm1), se = predict(vm1, se.fit = TRUE)$se.fit )
 
 agrassPredDF$upperSE = expit(agrassPredDF$predictedHits + agrassPredDF$se)
