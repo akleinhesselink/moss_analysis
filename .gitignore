@@ -2,3 +2,14 @@
 .Rhistory
 .RData
 .Ruserdata
+\._*
+
+\.Rapp*
+
+*jpg
+*JPG
+*PNG
+*png
+*pdf
+*PDF
+
