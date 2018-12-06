@@ -1,7 +1,7 @@
 ##### make ggplot theme for moss paper 
 
 moss_theme = theme_set(theme_bw() + 
-                       theme( panel.grid.major = element_blank(), 
+                       theme( panel.grid = element_blank(), 
                               legend.key = element_blank(), 
                               legend.key.width = unit(3, 'line'),
                               legend.text = element_text(size = 12),

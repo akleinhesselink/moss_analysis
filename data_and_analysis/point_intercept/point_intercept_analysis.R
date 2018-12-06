@@ -2,16 +2,10 @@
 
 rm(list = ls())
 
-library(coin)
-library(mgcv)
-#library(sm)
-library(ggplot2)
 library(grid)
-library(multcomp)
-library(dplyr)
-library(tidyr)
-library(stringr)
+library(tidyverse)
 library(scales)
+library(cowplot)
 
 source('data_and_analysis/moss_theme.R')
 
@@ -38,78 +32,68 @@ prop_cover <- cover_counts %>% select( bare, ericameria, lupine, moss, shrubs )/
 
 prop_cover$distance <- cover_counts$distance
 
-coverLong = cbind(distance = as.numeric( levels(prop_cover$distance)[ prop_cover$distance ]), stack(prop_cover[, 1:5]))
-names(coverLong)  = c("distance", "percentCover", "Category")
-
-#### plot cover over gradient 
-p = ggplot(subset(coverLong, Category %in% c('moss', 'bare', 'shrubs')), 
-           aes(x = distance, y = percentCover, color = Category, group = Category, shape = Category, linetype = Category)) 
-
-p + geom_point(size = 3.5) + 
-  geom_smooth( method = 'loess', se = FALSE, size = 1.25) + 
-  xlab(xlab_distance) + 
-  ylab("Proportion of points per transect")
+coverLong <- cbind(distance = as.numeric( levels(prop_cover$distance)[ prop_cover$distance ]), stack(prop_cover[, 1:5]))
+names(coverLong) <- c("distance", "percentCover", "Category")
 
 pid$hit[pid$species != 0 ] = 1
 pid$hit[pid$species == 0 ] = 0
 
-no_shrub = subset(pid, cover_category %in% c('bare', 'moss'))
+no_shrub <- subset(pid, cover_category %in% c('bare', 'moss'))
 
-no_shrub$cover_category = factor(no_shrub$cover_category)
+no_shrub$cover_category<-factor(no_shrub$cover_category)
 no_shrub$cover_category
 
-no_shrub = no_shrub[, -c(2, 4)]
+no_shrub <- no_shrub[, -c(2, 4)]
 head(no_shrub)
 summary(no_shrub)
 
-testTable = table( no_shrub$cover_category, no_shrub$hit) [ -c(2:4), ]
+testTable <- table( no_shrub$cover_category, no_shrub$hit) [ -c(2:4), ]
 testTable
 chisq.test(testTable)
 
-###### center distances at midpoint of range 
-no_shrub$transect2 = no_shrub$transect - median(range(no_shrub$transect)) 
+no_shrub$transect2 <- no_shrub$transect - median(range(no_shrub$transect)) ###### center distances at midpoint of range 
 
-hit_mod.binomial = glm(hit ~ transect*cover_category, data = no_shrub, family = 'binomial')
+# model hits per patch type across the gradient ------- 
+hit_mod.binomial <- glm(hit ~ transect*cover_category, data = no_shrub, family = 'binomial')
 summary(hit_mod.binomial)
 anova(hit_mod.binomial)
 
-hit_mod1 = glm(hit ~ transect*cover_category, data = no_shrub, family = 'quasibinomial')
+hit_mod1 <- glm(hit ~ transect*cover_category, data = no_shrub, family = 'quasibinomial')
 summary(hit_mod1)
 anova(hit_mod1, test= 'F')
 
-drop1(hit_mod1, test = 'LRT')
-
+drop1(hit_mod1, test = 'LRT') # likelihood ratio test 
 
 2*pt(0.825, df = 397, lower.tail= FALSE) 
 
-no_shrub$cover_reordered = factor(no_shrub$cover_category, levels = c('moss', 'bare'))
-hit_mod2 = glm( hit ~ transect2*cover_reordered, data = no_shrub, family = 'quasibinomial')
+no_shrub$cover_reordered <- factor(no_shrub$cover_category, levels = c('moss', 'bare'))
+hit_mod2 <- glm( hit ~ transect2*cover_reordered, data = no_shrub, family = 'quasibinomial')
 summary(hit_mod2)
 anova(hit_mod2, test = 'F')
 
-predicted = data.frame(predict(hit_mod1, se.fit = TRUE))
-predicted$upperSE = predicted[, 1] + predicted[, 2]
-predicted$lowerSE = predicted[, 1] - predicted[, 2]
+predicted <- data.frame(predict(hit_mod1, se.fit = TRUE))
+predicted$upperSE <- predicted[, 1] + predicted[, 2]
+predicted$lowerSE <- predicted[, 1] - predicted[, 2]
 predicted
 
-hit_data = cbind(no_shrub, predicted = expit(predicted[,c(1,4,5)]))
+hit_data <- cbind(no_shrub, predicted = expit(predicted[,c(1,4,5)]))
 head(hit_data)
 
-hit_data2 = aggregate(hit ~ transect*cover_category, data = hit_data , FUN= 'mean')
-hit_data2$predicted  = aggregate(predicted.fit ~ transect*cover_category, data = hit_data, FUN = 'mean')[,3]
-hit_data2$upperSE = aggregate(predicted.upperSE ~ transect*cover_category, data = hit_data, FUN = 'mean')[, 3]
-hit_data2$lowerSE = aggregate(predicted.lowerSE ~ transect*cover_category, data = hit_data, FUN = 'mean')[, 3]
+hit_data2 <- aggregate(hit ~ transect*cover_category, data = hit_data , FUN= 'mean')
+hit_data2$predicted  <- aggregate(predicted.fit ~ transect*cover_category, data = hit_data, FUN = 'mean')[,3]
+hit_data2$upperSE <- aggregate(predicted.upperSE ~ transect*cover_category, data = hit_data, FUN = 'mean')[, 3]
+hit_data2$lowerSE <- aggregate(predicted.lowerSE ~ transect*cover_category, data = hit_data, FUN = 'mean')[, 3]
 head(hit_data2)
 
 ##### add counts of moss and bare to show the points weight 
-cover_counts$transect = row.names(cover_counts)
-hit_data2$counts = NA
+cover_counts$transect <- row.names(cover_counts)
+hit_data2$counts <- NA
 tail(hit_data2)
 
 hit_data2[ hit_data2$cover_category == 'bare', 'counts'] <- cover_counts$bare
 hit_data2[ hit_data2$cover_category == 'moss', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
 
-p = ggplot(hit_data2, aes(x = transect, y = hit, fill = cover_category, color = cover_category))
+p <- ggplot(hit_data2, aes(x = transect, y = hit, fill = cover_category, color = cover_category))
 p + geom_point( aes(size = counts))
 
 p + geom_point(aes(size = counts)) + 
@@ -117,21 +101,23 @@ p + geom_point(aes(size = counts)) +
   geom_ribbon(aes(ymin=lowerSE,ymax=upperSE),alpha=0.3) + 
   xlab(xlab_distance) + ylab('Probability of plant')
 
-levels(coverLong$Category) = c("Bare sand", "ericameria", "lupine", "Moss patch", "Shrub patch")
+levels(coverLong$Category) <- c("Bare sand", "ericameria", "lupine", "Moss patch", "Shrub patch")
 coverLong$Category
 
-#### plot cover over gradient 
-xTitle = xlab_distance
-yTitle1 = "Proportion cover"
-yTitle2 = "Probability of plant rooted at point"
+#### plot cover over gradient ------------------------------ 
+xTitle <- xlab_distance
+yTitle1 <- "Proportion cover"
+yTitle2 <- "Probability of plant rooted at point"
 
-coverLong$Category = factor( coverLong$Category,levels=c('Moss patch', 'Bare sand', 'Shrub patch', 'ericameria', 'lupine'))
+coverLong$Category <- factor( coverLong$Category,levels=c('Moss patch', 'Bare sand', 'Shrub patch', 'ericameria', 'lupine'))
 
-coverLong$distance
-
-p1 = ggplot(subset(coverLong, Category %in% c('Moss patch', 'Bare sand', 'Shrub patch')), 
-            aes(x = distance, y = percentCover, color = Category, 
-                group = Category, linetype = Category, shape= Category)) 
+p1 <- ggplot(subset(coverLong, Category %in% c('Moss patch', 'Bare sand', 'Shrub patch')), 
+            aes(x = distance, 
+                y = percentCover, 
+                color = Category, 
+                group = Category, 
+                linetype = Category, 
+                shape= Category)) 
 
 p1 <-
   p1 + 
@@ -141,10 +127,20 @@ p1 <-
   ylab(yTitle1) + 
   ylim( 0, 1) + 
   scale_color_grey() + 
-  theme(axis.title.y = element_text(margin = margin(c(0, 15, 0, 0))), 
+  theme(legend.position = 'right',
+        legend.justification = 0, 
+        legend.key.width = unit(3, 'line'),
+        plot.margin = margin(c(10, 10, 10, 20)), 
+        axis.title.y = element_text(margin = margin(c(0, 15, 0, 0))), 
         axis.title.x = element_text(margin = margin(c(10, 0, 0, 0)))) + 
-  scale_y_continuous(labels = percent_format())
+  scale_y_continuous(labels = percent_format(accuracy = 1))
 
+
+p1_mod <- 
+  ggdraw(p1) + 
+  draw_text(c('Low\nStress', 'High\nStress'), 
+            x = c(0.06, 0.78), 
+            y = 0.13, size = 15)
 
 
 coverWide <- coverLong %>% spread(Category, percentCover)
@@ -167,14 +163,14 @@ hit_data2$cover_category
 hit_data2$Category <- factor(hit_data2$Category, labels = c('Moss patch', 'Bare sand'))
 hit_data2$Category
 
-p2.base = ggplot(hit_data2, aes(x = transect, 
+p2.base <- ggplot(hit_data2, aes(x = transect, 
                            y = hit, 
                            color = Category, 
                            fill = Category, 
                            shape = Category, 
                            linetype = Category))
 
-p2 = 
+p2 <- 
   p2.base +  
   geom_line(aes(y = predicted), color = 'black', size = 0.8) + 
   ylab(yTitle2) + 
@@ -182,7 +178,7 @@ p2 =
   scale_color_grey(start= 0, end = 0.5) + 
   scale_linetype_manual(values= c(1, 2))  
 
-p3 =
+p3 <-
   p2 + 
   geom_point(size = 3) +
   geom_ribbon(aes(ymin = lowerSE, ymax = upperSE, color = NULL), alpha = 0.4) +
@@ -193,7 +189,7 @@ p3 =
 
 p3
 
-p2.withSize = p2 + 
+p2.withSize <- p2 + 
   geom_ribbon(aes(ymin =lowerSE,
                   ymax = upperSE, color = NULL), alpha = 0.4) + 
   geom_point(aes(size = counts)) +   
@@ -205,25 +201,47 @@ p2.withSize = p2 +
   
 p2.withSize #### for plot 
 
-ggsave(filename='figures/cover_on_transect.png', plot= p1, height= 5, width = 8, units= 'in', dpi = 300)
-ggsave(filename= 'figures/rooted_in_moss.png', plot = p2.withSize, height = 5, width = 8, units = 'in', dpi = 300)
-ggsave(filename= 'figures/rooted_in_moss_legend.png', plot = p3, height = 5, width = 8, units = 'in', dpi = 300 )
+### Print plots out ----------------------------- # 
+
+ggsave(filename='figures/cover_on_transect.png', 
+       plot= p1_mod, 
+       height= 4.5, 
+       width = 7, 
+       units= 'in', 
+       dpi = 300)
+
+ggsave(filename= 'figures/rooted_in_moss.png', 
+       plot = p2.withSize, 
+       height = 5, 
+       width = 8, 
+       units = 'in', 
+       dpi = 300)
+
+ggsave(filename= 'figures/rooted_in_moss_legend.png', 
+       plot = p3, 
+       height = 5, 
+       width = 8, 
+       units = 'in', 
+       dpi = 300 )
+
 
 ######
+# Additional species specific analyses of co-occurence with moss
 ######
-points = aggregate(hit ~ transect + cover_category, data = no_shrub, length)
-names(points)[3] = "points"
-sum_hits = aggregate(hit ~ transect + cover_category, data = no_shrub, sum)
 
-prop_hit = merge(points, sum_hits)
-prop_hit$success_prob = prop_hit$hit/prop_hit$points
-prop_hit$no_hit = prop_hit$points - prop_hit$hit 
+points <- aggregate(hit ~ transect + cover_category, data = no_shrub, length)
+names(points)[3] <- "points"
+sum_hits <- aggregate(hit ~ transect + cover_category, data = no_shrub, sum)
+
+prop_hit <- merge(points, sum_hits)
+prop_hit$success_prob <- prop_hit$hit/prop_hit$points
+prop_hit$no_hit <- prop_hit$points - prop_hit$hit 
 
 ######## species specific analysis          #####################
-no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
+no_shrub <- subset(pid, cover_category %in% c('moss', 'bare'))
 
 table(no_shrub$cover_category)
-speciesTable = table(no_shrub$species)
+speciesTable <- table(no_shrub$species)
 
 length(speciesTable)
 #### total non-shrub points: 
@@ -233,11 +251,11 @@ sum(speciesTable[ -1])
 
 barplot(speciesTable, horiz= TRUE, las = 2)
 
-spTableByCat = table(no_shrub$species, no_shrub$cover_category)
+spTableByCat <- table(no_shrub$species, no_shrub$cover_category)
 
-spTableByCat = data.frame(spTableByCat)
+spTableByCat <- data.frame(spTableByCat)
 
-spTableByCat = spTableByCat[ spTableByCat$Var2 %in% c('moss', 'bare'),  ]
+spTableByCat <- spTableByCat[ spTableByCat$Var2 %in% c('moss', 'bare'),  ]
 
 ggplot(spTableByCat, aes(x = Var1, y = Freq, fill = Var2)) + 
   geom_bar( stat = 'identity', position = 'dodge') + coord_flip()
@@ -248,28 +266,28 @@ pid$vHit[ is.na(pid$vHit)  ] <- 0
 
 no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
 
-testTable = table(no_shrub$cover_category, no_shrub$vHit)[ -c(2:4), ]
+testTable <- table(no_shrub$cover_category, no_shrub$vHit)[ -c(2:4), ]
 chisq.test(testTable)
 
-vm1 = glm(vHit ~ transect*cover_category, no_shrub, family = 'binomial')
+vm1 <- glm(vHit ~ transect*cover_category, no_shrub, family = 'binomial')
 summary(vm1)
-vulpPredDF = cbind( no_shrub, predictedVulpia = predict(vm1), se = predict(vm1, se.fit = TRUE)$se.fit )
+vulpPredDF <- cbind( no_shrub, predictedVulpia = predict(vm1), se = predict(vm1, se.fit = TRUE)$se.fit )
 
-vulpPredDF$upperSE = expit(vulpPredDF$predictedVulpia + vulpPredDF$se)
-vulpPredDF$lowerSE = expit(vulpPredDF$predictedVulpia - vulpPredDF$se)
-vulpPredDF$pred = expit(vulpPredDF$predictedVulpia)
+vulpPredDF$upperSE <- expit(vulpPredDF$predictedVulpia + vulpPredDF$se)
+vulpPredDF$lowerSE <- expit(vulpPredDF$predictedVulpia - vulpPredDF$se)
+vulpPredDF$pred <- expit(vulpPredDF$predictedVulpia)
 
 vulpPredDF$cover_category <- factor(vulpPredDF$cover_category, levels = c('moss', 'bare'))
 levels( vulpPredDF$cover_category ) <- c('Moss patch', 'Bare sand')
 
 names(vulpPredDF )[ 3] <- 'Category'
 
-vHitsAgg = aggregate( vHit ~ transect*Category, vulpPredDF , FUN = 'mean')
+vHitsAgg <- aggregate( vHit ~ transect*Category, vulpPredDF , FUN = 'mean')
 
 vHitsAgg[ vHitsAgg$Category == 'Bare sand', 'counts'] <- cover_counts$bare
 vHitsAgg[ vHitsAgg$Category == 'Moss patch', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
 
-vulpPlot = ggplot(vulpPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
+vulpPlot <- ggplot(vulpPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
   geom_line( aes(linetype = Category)) + 
   geom_ribbon (aes( ymin = upperSE, ymax = lowerSE), alpha = 0.2, color = NA) + 
   scale_color_grey() +
@@ -284,15 +302,15 @@ ggsave(filename= 'figures/vulpHits.png',  plot = vulpPlot, height= 5, width = 8,
 pid$bHit[ pid$species == 'brdi' ] <- 1
 pid$bHit[ is.na(pid$bHit)  ] <- 0
 
-no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
+no_shrub <- subset(pid, cover_category %in% c('moss', 'bare'))
 
-vm1 = glm(bHit ~ transect*cover_category, no_shrub, family = 'binomial')
+vm1 <- glm(bHit ~ transect*cover_category, no_shrub, family = 'binomial')
 summary(vm1)
 brdiPredDF = cbind( no_shrub, predictedHits = predict(vm1), se = predict(vm1, se.fit = TRUE)$se.fit )
 
-brdiPredDF$upperSE = expit(brdiPredDF$predictedHits + brdiPredDF$se)
-brdiPredDF$lowerSE = expit(brdiPredDF$predictedHits - brdiPredDF$se)
-brdiPredDF$pred = expit(brdiPredDF$predictedHits)
+brdiPredDF$upperSE <- expit(brdiPredDF$predictedHits + brdiPredDF$se)
+brdiPredDF$lowerSE <- expit(brdiPredDF$predictedHits - brdiPredDF$se)
+brdiPredDF$pred <- expit(brdiPredDF$predictedHits)
 
 brdiPredDF$cover_category <- factor(brdiPredDF$cover_category, levels = c('moss', 'bare'))
 levels( brdiPredDF$cover_category ) <- c('Moss patch', 'Bare sand')
@@ -319,35 +337,35 @@ ggsave(filename= 'figures/brdiHits.png',  plot = brdiPlot, height= 5, width = 8,
 pid$aHit[ pid$species %in% c('brdi', 'vubr') ] <- 1
 pid$aHit[ is.na(pid$aHit)  ] <- 0
 
-no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
+no_shrub <- subset(pid, cover_category %in% c('moss', 'bare'))
 
-testMat = table( no_shrub$cover_category, no_shrub$aHit) [ -c(2:4), ]
+testMat <- table( no_shrub$cover_category, no_shrub$aHit) [ -c(2:4), ]
 class(testMat)
 chisq.test( x= testMat)
 
 head(no_shrub)
 
-vm1 = glm(aHit ~ transect*cover_category, no_shrub, family = 'binomial')
+vm1 <- glm(aHit ~ transect*cover_category, no_shrub, family = 'binomial')
 summary(vm1)
 anova(vm1, test = 'Chisq')
 
-agrassPredDF = cbind( no_shrub, predictedHits = predict(vm1), se = predict(vm1, se.fit = TRUE)$se.fit )
+agrassPredDF <- cbind( no_shrub, predictedHits = predict(vm1), se = predict(vm1, se.fit = TRUE)$se.fit )
 
-agrassPredDF$upperSE = expit(agrassPredDF$predictedHits + agrassPredDF$se)
-agrassPredDF$lowerSE = expit(agrassPredDF$predictedHits - agrassPredDF$se)
-agrassPredDF$pred = expit(agrassPredDF$predictedHits)
+agrassPredDF$upperSE <- expit(agrassPredDF$predictedHits + agrassPredDF$se)
+agrassPredDF$lowerSE <- expit(agrassPredDF$predictedHits - agrassPredDF$se)
+agrassPredDF$pred <- expit(agrassPredDF$predictedHits)
 
 agrassPredDF$cover_category <- factor(agrassPredDF$cover_category, levels = c('moss', 'bare'))
 levels( agrassPredDF$cover_category ) <- c('Moss patch', 'Bare sand')
 
 names(agrassPredDF )[ 3] <- 'Category'
 
-aHitsAgg = aggregate( aHit ~ transect*Category, agrassPredDF , FUN = 'mean')
+aHitsAgg <- aggregate( aHit ~ transect*Category, agrassPredDF , FUN = 'mean')
 
 aHitsAgg[ aHitsAgg$Category == 'Bare sand', 'counts'] <- cover_counts$bare
 aHitsAgg[ aHitsAgg$Category == 'Moss patch', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
 
-agrassPlot = ggplot(agrassPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
+agrassPlot <- ggplot(agrassPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
   geom_line( aes(linetype = Category)) + 
   geom_ribbon (aes( ymin = upperSE, ymax = lowerSE), alpha = 0.2, color = NA) + 
   scale_color_grey() +
@@ -375,33 +393,33 @@ pid$nHit[ pid$origin == 'native' ] <- 1
 
 # exotic ------------------------------------------------------------------------------------------------------------
 
-no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
+no_shrub <- subset(pid, cover_category %in% c('moss', 'bare'))
 
-testMat = table( no_shrub$cover_category, no_shrub$eHit)[ -c(2:4), ]
+testMat <- table( no_shrub$cover_category, no_shrub$eHit)[ -c(2:4), ]
 class(testMat)
 chisq.test( x= testMat)
 
-em1 = glm(eHit ~ transect*cover_category, no_shrub, family = 'quasibinomial')
+em1 <- glm(eHit ~ transect*cover_category, no_shrub, family = 'quasibinomial')
 summary(em1)
 anova(em1, test = 'F')
 
-ePredDF = cbind( no_shrub, predictedHits = predict(em1), se = predict(em1, se.fit = TRUE)$se.fit )
+ePredDF <- cbind( no_shrub, predictedHits = predict(em1), se = predict(em1, se.fit = TRUE)$se.fit )
 
-ePredDF$upperSE = expit(ePredDF$predictedHits + ePredDF$se)
-ePredDF$lowerSE = expit(ePredDF$predictedHits - ePredDF$se)
-ePredDF$pred = expit(ePredDF$predictedHits)
+ePredDF$upperSE <- expit(ePredDF$predictedHits + ePredDF$se)
+ePredDF$lowerSE <- expit(ePredDF$predictedHits - ePredDF$se)
+ePredDF$pred <- expit(ePredDF$predictedHits)
 
 ePredDF$cover_category <- factor(ePredDF$cover_category, levels = c('moss', 'bare'))
 levels(ePredDF$cover_category ) <- c('Moss patch', 'Bare sand')
 
 ePredDF$Category <- ePredDF$cover_category
 
-eHitsAgg = aggregate( eHit ~ transect*Category, ePredDF , FUN = 'mean')
+eHitsAgg <- aggregate( eHit ~ transect*Category, ePredDF , FUN = 'mean')
 
 eHitsAgg[ eHitsAgg$Category == 'Bare sand', 'counts'] <- cover_counts$bare
 eHitsAgg[ eHitsAgg$Category == 'Moss patch', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
 
-ePlot = ggplot(ePredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
+ePlot <- ggplot(ePredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
   geom_line( aes(linetype = Category)) + 
   geom_ribbon (aes( ymin = upperSE, ymax = lowerSE), alpha = 0.2, color = NA) + 
   scale_color_grey() +
@@ -414,17 +432,17 @@ ggsave(filename= 'figures/eHits.png',  plot = ePlot, height= 5, width = 8, units
 
 # native ------------------------------------------------------------------------------------------------------------
 
-no_shrub = subset(pid, cover_category %in% c('moss', 'bare'))
+no_shrub <- subset(pid, cover_category %in% c('moss', 'bare'))
 
-testMat = table( no_shrub$cover_category, no_shrub$nHit)[ -c(2:4), ]
+testMat <- table( no_shrub$cover_category, no_shrub$nHit)[ -c(2:4), ]
 class(testMat)
 chisq.test( x= testMat)
 
-nm1 = glm(nHit ~ transect*cover_category, no_shrub, family = 'quasibinomial')
+nm1 <- glm(nHit ~ transect*cover_category, no_shrub, family = 'quasibinomial')
 summary(nm1)
 anova(nm1, test = 'Chisq')
 
-nPredDF = cbind( no_shrub, predictedHits = predict(nm1), se = predict(nm1, se.fit = TRUE)$se.fit )
+nPredDF <- cbind( no_shrub, predictedHits = predict(nm1), se = predict(nm1, se.fit = TRUE)$se.fit )
 
 nPredDF$upperSE = expit(nPredDF$predictedHits + nPredDF$se)
 nPredDF$lowerSE = expit(nPredDF$predictedHits - nPredDF$se)
@@ -435,12 +453,12 @@ levels(nPredDF$cover_category ) <- c('Moss patch', 'Bare sand')
 
 nPredDF$Category <- nPredDF$cover_category
 
-nHitsAgg = aggregate( nHit ~ transect*Category, nPredDF , FUN = 'mean')
+nHitsAgg <- aggregate( nHit ~ transect*Category, nPredDF , FUN = 'mean')
 
 nHitsAgg[ nHitsAgg$Category == 'Bare sand', 'counts'] <- cover_counts$bare
 nHitsAgg[ nHitsAgg$Category == 'Moss patch', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
 
-nPlot = ggplot(nPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
+nPlot <- ggplot(nPredDF , aes(x = transect, shape = Category, fill = Category, color = Category, y = pred) ) + 
   geom_line( aes(linetype = Category)) + 
   geom_ribbon (aes( ymin = upperSE, ymax = lowerSE), alpha = 0.2, color = NA) + 
   scale_color_grey() +
