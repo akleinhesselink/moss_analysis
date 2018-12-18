@@ -47,12 +47,12 @@ fig1 <-
             aes( x = x_pos, y = y_pos, label = label, ymin = 0, ymax = 0, color = NULL), size = 5, show.legend = FALSE) + 
   scale_y_continuous(yTitle1, labels = percent_format()) + 
   xlab(xTitle) + 
-  scale_color_grey() +
+  scale_shape_manual(values = c(19, 2, 15))  + 
+  scale_color_manual(values = c('black', 'black', 'darkgray')) + 
+  guides(color = guide_legend(override.aes = list(linetype = 0, size = 5))) +
   facet_grid( . ~ species) +   
   moss_theme
   
-
-fig1
 
 fig2 <- 
   ggplot(data = size, aes( x = Stress, y = result, ymin = result - stand_err, 
@@ -64,7 +64,9 @@ fig2 <-
   geom_text(data = label_df[3:4,], aes( x = x_pos, y = y_pos*max(size$result) + 0.3, label = label, ymin = 0, ymax = 0), size = 5, vjust = 0.1, show.legend = FALSE) + 
   scale_y_continuous(yTitle2) + 
   xlab(xTitle) + 
-  scale_color_grey() +
+  scale_shape_manual(values = c(19, 2, 15))  + 
+  scale_color_manual(values = c('black', 'black', 'darkgray')) + 
+  guides(color = guide_legend(override.aes = list(linetype = 0, size = 5))) +
   facet_grid( . ~ species) +   
   moss_theme
 
@@ -82,7 +84,9 @@ fig3 <- ggplot(data = infls, aes( x = Stress, y = result, ymin = result - stand_
             size = 5, vjust = 0.1, show.legend = FALSE) + 
   scale_y_continuous(yTitle3) + 
   xlab(xTitle) + 
-  scale_color_grey() +
+  scale_shape_manual(values = c(19, 2, 15))  + 
+  scale_color_manual(values = c('black', 'black', 'darkgray')) + 
+  guides(color = guide_legend(override.aes = list(linetype = 0, size = 5))) +
   facet_grid( . ~ species) +   
   moss_theme
 
@@ -93,14 +97,12 @@ fmt_dcimals <- function(decimals=0){
 
 top_panel <- 
   fig1 + 
-  scale_color_grey(guide = 'none') + 
-  scale_shape_discrete(guide = 'none') + 
   theme( 
+    legend.position = 'none', 
     strip.background = element_blank(),
     axis.title.x = element_blank(), 
     axis.text.x = element_blank(), 
     plot.margin = margin( 0, 11.3, 0, 4, unit = 'line'))
-
 
 mid_panel <- 
   fig2 + 
@@ -114,9 +116,8 @@ mid_panel <-
 
 bottom_panel <- 
   fig3 + 
-  scale_shape_discrete(guide = 'none') + 
-  scale_color_grey( guide = 'none')  + 
-  theme(strip.text = element_blank(), 
+  theme(legend.position = 'none', 
+        strip.text = element_blank(), 
         plot.margin = margin( 0, 11.3, 1, 4, unit = 'line'), 
         axis.title.x = element_text(margin = margin(1, 0, 0, 0, unit = 'line')))  
 
