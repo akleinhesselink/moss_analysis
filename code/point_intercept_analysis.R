@@ -66,20 +66,20 @@ drop1(hit_mod1, test = 'LRT') # likelihood ratio test
 
 2*pt(0.825, df = 397, lower.tail= FALSE) 
 
-no_shrub$cover_reordered <- factor(no_shrub$cover_category, levels = c('moss', 'bare'))
-hit_mod2 <- glm( hit ~ transect2*cover_reordered, data = no_shrub, family = 'quasibinomial')
-summary(hit_mod2)
-anova(hit_mod2, test = 'F')
+# add NA points to fill out prediction line in figure 
+pred_frame <- rbind( hit_mod1$data, data.frame( transect = c(9, 23, 47, 66),   
+                                                cover_category = 'moss', 
+                                                hit = NA, 
+                                                transect2 = NA))
 
-predicted <- data.frame(predict(hit_mod1, se.fit = TRUE))
+predicted <- data.frame(predict(hit_mod1, newdata = pred_frame, se.fit = TRUE))
 predicted$upperSE <- predicted[, 1] + predicted[, 2]
 predicted$lowerSE <- predicted[, 1] - predicted[, 2]
 predicted
 
-hit_data <- cbind(no_shrub, predicted = expit(predicted[,c(1,4,5)]))
-head(hit_data)
+hit_data <- cbind(pred_frame, predicted = expit(predicted[,c(1,4,5)]))
+hit_data2 <- aggregate(hit ~ transect*cover_category, data = hit_data , FUN= 'mean', na.action = 'na.pass')
 
-hit_data2 <- aggregate(hit ~ transect*cover_category, data = hit_data , FUN= 'mean')
 hit_data2$predicted  <- aggregate(predicted.fit ~ transect*cover_category, data = hit_data, FUN = 'mean')[,3]
 hit_data2$upperSE <- aggregate(predicted.upperSE ~ transect*cover_category, data = hit_data, FUN = 'mean')[, 3]
 hit_data2$lowerSE <- aggregate(predicted.lowerSE ~ transect*cover_category, data = hit_data, FUN = 'mean')[, 3]
@@ -91,7 +91,7 @@ hit_data2$counts <- NA
 tail(hit_data2)
 
 hit_data2[ hit_data2$cover_category == 'bare', 'counts'] <- cover_counts$bare
-hit_data2[ hit_data2$cover_category == 'moss', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
+hit_data2[ hit_data2$cover_category == 'moss', 'counts'] <- cover_counts$moss
 
 levels(coverLong$Category) <- c("Bare sand", "ericameria", "lupine", "Moss patch", "Shrub patch")
 coverLong$Category
@@ -111,16 +111,17 @@ p1 <- ggplot(subset(coverLong, Category %in% c('Moss patch', 'Bare sand', 'Shrub
                 linetype = Category, 
                 shape= Category)) + 
   geom_point(size = 3) +  
-  geom_smooth( method = 'lm',formula = y ~ poly(x, 2), se = FALSE, size = 1) + 
+  geom_smooth( method = 'lm',formula = y ~ poly(x, 2), se = FALSE, size = 0.8) + 
   xlab(xTitle) + 
   ylab(yTitle1) + 
   ylim( 0, 1) + 
-  scale_color_grey() + 
+  scale_color_manual(values = c('black', 'black', 'darkgray')) + 
   scale_y_continuous(labels = percent_format(accuracy = 1)) + 
   moss_theme + 
+  scale_shape_manual(values = c(19, 2, 15)) + 
   theme(legend.position = 'right',
         legend.justification = 0, 
-        legend.key.width = unit(3, 'line'),
+        legend.key.width = unit(3.5, 'line'),
         plot.margin = margin(c(10, 10, 10, 20)), 
         axis.title.y = element_text(margin = margin(c(0, 15, 0, 0))), 
         axis.title.x = element_text(margin = margin(c(10, 0, 0, 0)))) 
@@ -130,7 +131,7 @@ p1 <- ggplot(subset(coverLong, Category %in% c('Moss patch', 'Bare sand', 'Shrub
 p1_mod <- 
   ggdraw(p1 + ylim( 0, 1)) + 
   draw_text(c('Low\nStress', 'High\nStress'), 
-            x = c(0.06, 0.78), 
+            x = c(0.05, 0.75), 
             y = 0.15, size = 15)
 
 coverWide <- coverLong %>% spread(Category, percentCover)
@@ -144,8 +145,8 @@ summary( moss_cover )
 summary(sand_cover)
 summary(shrub_cover)
 
-
 #### plot probability of plant being rooted in moss vs. bare ground 
+
 
 hit_data2$cover_category
 hit_data2$Category <- factor( hit_data2$cover_category , levels = c('moss', 'bare'), ordered = T)
@@ -153,50 +154,54 @@ hit_data2$cover_category
 hit_data2$Category <- factor(hit_data2$Category, labels = c('Moss patch', 'Bare sand'))
 hit_data2$Category
 
-p2 <- ggplot(hit_data2, aes(x = transect, 
-                           y = hit, 
-                           color = Category, 
-                           fill = Category, 
-                           shape = Category, 
-                           linetype = Category)) +  
-  geom_point(size = 4) + 
-  geom_point(size = 4, color = 'white', show.legend = F) + 
-  geom_point( data = hit_data2, aes(x = transect,
-                                    y = hit,
-                                    color = Category,
-                                    shape = Category,
-                                    size = counts), show.legend = F) +
-  geom_ribbon(aes(ymin = lowerSE, ymax = upperSE, color = NULL), alpha = 0.4) +
-  geom_line(aes(y = predicted), color = 'black', size = 0.8) + 
-  ylab(yTitle2) + 
-  xlab(xTitle) + 
-  scale_color_grey(start= 0, end = 0.5) + 
-  scale_linetype_manual(values= c(1, 2)) + 
-  scale_size(range = c(2,7), guide = F) + 
+
+p2 <- ggplot( hit_data2, aes( x = transect, y = hit )) + 
+  geom_ribbon(aes(ymin = lowerSE, ymax = upperSE, fill = Category, group = Category), alpha = 0.5) + 
+  geom_line(aes(y = predicted, group = Category, linetype = Category), color = 'black', size = 0.8) + 
+  geom_point( aes(shape = Category), size = 6) + 
+  scale_shape_manual(values = c(19, 2)) + 
+  scale_linetype_manual(values= c(1, 2) ) + 
   scale_fill_grey() +
   moss_theme + 
-  theme(legend.key = element_rect(colour = NA),   
-        axis.title.y = element_text(margin = margin(c(0, 15, 0, 0))),
-        axis.title.x = element_text(margin = margin(c(10, 0, 0, 0))))
+  theme(
+    legend.key = element_rect(color = 'white'), 
+    axis.title.y = element_text(margin = margin(c(0, 15, 0, 0))),
+    axis.title.x = element_text(margin = margin(c(10, 0, 0, 0)))) 
+
+p2_legend <- get_legend(p2)
 
 
-p2 #### for plot 
+p3 <- 
+  ggplot( hit_data2, aes( x = transect, y = hit )) + 
+  geom_ribbon(aes(ymin = lowerSE, ymax = upperSE, fill = Category, group = Category), alpha = 0.5) + 
+  geom_line(aes(y = predicted, group = Category, linetype = Category), color = 'black', size = 0.8) + 
+  geom_point( aes(shape = Category, size = counts)) + 
+  scale_shape_manual(values = c(19, 2)) + 
+  scale_linetype_manual(values= c(1, 2) ) + 
+  scale_fill_grey() +
+  scale_size(range = c(1,7), guide = F) + 
+  scale_x_continuous(name = xlab_distance) + 
+  scale_y_continuous(name = 'Proportion of points with plants') + 
+  moss_theme + 
+  theme(
+    legend.position = "none", 
+    legend.key = element_rect(color = 'white'), 
+    axis.title.y = element_text(margin = margin(c(0, 15, 0, 0))),
+    axis.title.x = element_text(margin = margin(c(10, 0, 0, 0)))) 
 
-p2 <- 
-  p2 + 
-  theme(legend.key.width = unit(3, 'line'),
-        plot.margin = margin(c(10, 10, 10, 30)), 
-        axis.title.y = element_text(margin = margin(c(0, 15, 0, 0))), 
-        axis.title.x = element_text(margin = margin(c(10, 0, 0, 0))))
+
+p3 <- cowplot::plot_grid(p3 , p2_legend , ncol = 2, rel_widths = c(1, 0.3))
 
 
-p2_mod <- 
-  ggdraw(p2) + 
+p3 #### for plot 
+
+
+p3_mod <- 
+  ggdraw(p3) + 
   draw_text(c('Low\nStress', 'High\nStress'), 
-            x = c(0.06, 0.78), 
-            y = 0.13, size = 15)
-
-p2_mod
+            x = c(0.06, 0.82), 
+            y = 0.17, size = 15)
+p3_mod
 
 ### Print plots out ----------------------------- # 
 
@@ -209,7 +214,7 @@ ggsave(filename='figures/cover_on_transect.png',
        dpi = 300)
 
 ggsave(filename= 'figures/rooted_in_moss.png', 
-       plot = p2_mod, 
+       plot = p3_mod, 
        height = 4.5, 
        width = 7, 
        units = 'in', 
