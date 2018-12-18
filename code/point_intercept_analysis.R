@@ -14,7 +14,7 @@ expit = function(v){
   return (p)
 }
 
-pid <- read.csv('data_and_analysis/point_intercept/moss_cover.csv')
+pid <- read.csv('data/moss_cover.csv')
 
 pid$cover_category[pid$cover_category == 'ercameria'] = 'ericameria'
 
@@ -28,7 +28,7 @@ cover_counts <- cover_counts %>% spread( key = Var2, Freq) %>% rename( distance 
 
 cover_counts <- cover_counts %>% mutate( shrubs = ericameria + lupine ) 
 
-prop_cover <- cover_counts %>% select( bare, ericameria, lupine, moss, shrubs )/25 
+prop_cover <- cover_counts %>% dplyr::select( bare, ericameria, lupine, moss, shrubs )/25 
 
 prop_cover$distance <- cover_counts$distance
 
@@ -93,14 +93,6 @@ tail(hit_data2)
 hit_data2[ hit_data2$cover_category == 'bare', 'counts'] <- cover_counts$bare
 hit_data2[ hit_data2$cover_category == 'moss', 'counts'] <- cover_counts$moss[cover_counts$moss > 0]
 
-p <- ggplot(hit_data2, aes(x = transect, y = hit, fill = cover_category, color = cover_category))
-p + geom_point( aes(size = counts))
-
-p + geom_point(aes(size = counts)) + 
-  geom_line(aes(y = predicted)) + 
-  geom_ribbon(aes(ymin=lowerSE,ymax=upperSE),alpha=0.3) + 
-  xlab(xlab_distance) + ylab('Probability of plant')
-
 levels(coverLong$Category) <- c("Bare sand", "ericameria", "lupine", "Moss patch", "Shrub patch")
 coverLong$Category
 
@@ -117,31 +109,29 @@ p1 <- ggplot(subset(coverLong, Category %in% c('Moss patch', 'Bare sand', 'Shrub
                 color = Category, 
                 group = Category, 
                 linetype = Category, 
-                shape= Category)) 
-
-p1 <-
-  p1 + 
+                shape= Category)) + 
   geom_point(size = 3) +  
   geom_smooth( method = 'lm',formula = y ~ poly(x, 2), se = FALSE, size = 1) + 
   xlab(xTitle) + 
   ylab(yTitle1) + 
   ylim( 0, 1) + 
   scale_color_grey() + 
+  scale_y_continuous(labels = percent_format(accuracy = 1)) + 
+  moss_theme + 
   theme(legend.position = 'right',
         legend.justification = 0, 
         legend.key.width = unit(3, 'line'),
         plot.margin = margin(c(10, 10, 10, 20)), 
         axis.title.y = element_text(margin = margin(c(0, 15, 0, 0))), 
-        axis.title.x = element_text(margin = margin(c(10, 0, 0, 0)))) + 
-  scale_y_continuous(labels = percent_format(accuracy = 1))
+        axis.title.x = element_text(margin = margin(c(10, 0, 0, 0)))) 
+
 
 
 p1_mod <- 
-  ggdraw(p1) + 
+  ggdraw(p1 + ylim( 0, 1)) + 
   draw_text(c('Low\nStress', 'High\nStress'), 
             x = c(0.06, 0.78), 
-            y = 0.13, size = 15)
-
+            y = 0.15, size = 15)
 
 coverWide <- coverLong %>% spread(Category, percentCover)
 moss_cover <- lm(data =  coverWide , `Moss patch` ~ poly(distance, 2) )
@@ -163,15 +153,12 @@ hit_data2$cover_category
 hit_data2$Category <- factor(hit_data2$Category, labels = c('Moss patch', 'Bare sand'))
 hit_data2$Category
 
-p2.base <- ggplot(hit_data2, aes(x = transect, 
+p2 <- ggplot(hit_data2, aes(x = transect, 
                            y = hit, 
                            color = Category, 
                            fill = Category, 
                            shape = Category, 
-                           linetype = Category))
-
-p2 <- 
-  p2.base +  
+                           linetype = Category)) +  
   geom_point(size = 4) + 
   geom_point(size = 4, color = 'white', show.legend = F) + 
   geom_point( data = hit_data2, aes(x = transect,
@@ -187,6 +174,7 @@ p2 <-
   scale_linetype_manual(values= c(1, 2)) + 
   scale_size(range = c(2,7), guide = F) + 
   scale_fill_grey() +
+  moss_theme + 
   theme(legend.key = element_rect(colour = NA),   
         axis.title.y = element_text(margin = margin(c(0, 15, 0, 0))),
         axis.title.x = element_text(margin = margin(c(10, 0, 0, 0))))
@@ -208,8 +196,10 @@ p2_mod <-
             x = c(0.06, 0.78), 
             y = 0.13, size = 15)
 
+p2_mod
 
 ### Print plots out ----------------------------- # 
+
 
 ggsave(filename='figures/cover_on_transect.png', 
        plot= p1_mod, 
@@ -378,7 +368,7 @@ agrassPlot <- ggplot(agrassPredDF , aes(x = transect, shape = Category, fill = C
 ggsave(filename= 'figures/agrassHits.png',  plot = agrassPlot, height= 5, width = 8, units= 'in', dpi = 300 )
 
 # hits by origin ---------------------------------------------------------------------------------------------------- 
-d <- as.matrix( head( read.csv('data_and_analysis/point_intercept/moss_association_data.csv'), 1 ) )
+d <- as.matrix( head( read.csv('data/moss_association_data.csv'), 1 ) )
 origin <- colnames(d)
 species <-  d[1, ]
 
