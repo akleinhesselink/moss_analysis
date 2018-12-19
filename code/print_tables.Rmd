@@ -1,0 +1,56 @@
+---
+title: "Moss Manuscript Statistical Tables"
+author: "Andrew Kleinhesselink"
+date: "12/18/2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+
+capt_str <- 'Residual standard error: %.5f on %1.f degrees of freedom.
+Multiple R-squared %.5f, Adjusted R-squared: %.5f.
+F-statistic: %.1f on %1.f and %1.f DF, p-value: %e.'
+
+val_order <- c('sigma', 
+             'df.residual',
+             'r.squared',
+             'adj.r.squared',
+             'statistic',
+             'df',
+             'df.residual',
+             'p.value')
+
+load(file = '~/Dropbox/projects/moss_manuscript/output/point_intercept_models.rda')
+
+```
+
+
+```{r echo = F}
+
+# cleanup model output 
+mod_glance <- 
+  broom::glance(moss_cover_lm)  %>%    
+  gather(stat, val ) 
+ 
+quickstats <- mod_glance$val
+names( quickstats ) <- mod_glance$stat
+ 
+mynums <- as.list(quickstats[val_order])
+ 
+my_caption <- do.call(sprintf, c(mystr, mynums))
+my_tab <- broom::tidy(moss_cover_lm)
+
+knitr::kable(my_tab, digits = c(3, 3, 2, 2), caption = 'Table 1, Moss Cover Model')
+ 
+knitr::asis_output(my_caption)
+```
+
+------------------------------- 
+
+```{r echo = F}
+
+```
+
