@@ -6,13 +6,20 @@ output: word_document
 ---
 
 ```{r setup, include=FALSE}
+
 knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
 library(tidyverse)
 
 
-capt_str <- 'Residual standard error: %.5f on %1.f degrees of freedom.
+lm_capt_str <- 'Residual standard error: %.5f on %1.f degrees of freedom.
 Multiple R-squared %.5f, Adjusted R-squared: %.5f.
 F-statistic: %.1f on %1.f and %1.f DF, p-value: %e.'
+
+glm_binom_str <- 'Residual standard error: %.5f on %1.f degrees of freedom.
+Multiple R-squared %.5f, Adjusted R-squared: %.5f.
+F-statistic: %.1f on %1.f and %1.f DF, p-value: %e.'
+
 
 val_order <- c('sigma', 
              'df.residual',
@@ -25,32 +32,47 @@ val_order <- c('sigma',
 
 load(file = '~/Dropbox/projects/moss_manuscript/output/point_intercept_models.rda')
 
+# Table functions ---------------------------- # 
+print_glm_table <- function(glm_model, title){
+  
+  my_tab <- broom::tidy(glm_model)
+  
+  knitr::kable(my_tab, digits = c(3, 3, 2, 2), caption = title)
+}
+
+print_glm_table_caption <- function( glm_model, mystr ) {
+  
+  mod_glance <- 
+    broom::glance(glm_model)  %>%    
+    gather(stat, val) 
+   
+  quickstats <- mod_glance$val
+  names( quickstats ) <- mod_glance$stat
+   
+  mynums <- as.list(quickstats[val_order])
+   
+  my_caption <- do.call(sprintf, c(mystr, mynums))
+
+  knitr::asis_output(my_caption)
+}
+
 ```
 
 
 ```{r echo = F}
 
-# cleanup model output 
-mod_glance <- 
-  broom::glance(moss_cover_lm)  %>%    
-  gather(stat, val ) 
- 
-quickstats <- mod_glance$val
-names( quickstats ) <- mod_glance$stat
- 
-mynums <- as.list(quickstats[val_order])
- 
-my_caption <- do.call(sprintf, c(mystr, mynums))
-my_tab <- broom::tidy(moss_cover_lm)
+print_glm_table(moss_cover_lm, 'Table 1. Moss Cover on Gradient' )
+print_glm_table_caption( moss_cover_lm, capt_str)
 
-knitr::kable(my_tab, digits = c(3, 3, 2, 2), caption = 'Table 1, Moss Cover Model')
- 
-knitr::asis_output(my_caption)
 ```
 
-------------------------------- 
+----------------------------------- 
 
 ```{r echo = F}
 
+print_glm_table(all_hits_glm, 'Table 2. Plant occurence in moss across the gradient')
+print_glm_table_caption( all_hits_glm, capt_str)
+
+summary(all_hits_glm)
 ```
 

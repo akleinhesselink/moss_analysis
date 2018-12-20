@@ -14,6 +14,37 @@ expit = function(v){
   return (p)
 }
 
+gen_agg_hits_df <- function( my_mod ) { 
+  # add NA points to fill out prediction line in figure 
+  
+  agg_data <- 
+    my_mod$data %>% 
+    group_by( transect, cover_category) %>% 
+    summarise( plant_points = sum(hit), total_points = n()) 
+  
+  agg_data <- 
+    expand.grid( transect = unique( my_mod$data$transect),  
+                 cover_category = c('bare', 'moss')) %>% 
+    left_join(agg_data) %>% 
+    mutate( total_points = ifelse( is.na( total_points), 0, total_points ) )
+  
+  predicted <- data.frame(predict(my_mod, newdata = agg_data, se.fit = TRUE))
+  
+  predicted$upperSE <- predicted[, 1] + predicted[, 2]
+  predicted$lowerSE <- predicted[, 1] - predicted[, 2]
+  
+  hit_data <- cbind(agg_data, expit(predicted[,c(1,4,5)]))
+  
+  hit_data <- 
+    hit_data %>% 
+    mutate( hit = plant_points/total_points) %>% 
+    mutate( Category = factor( cover_category , levels = c('moss', 'bare'), ordered = T)) %>% 
+    mutate( Category = factor( Category, labels = c('Moss patch', 'Bare sand')))
+  
+  return( hit_data ) 
+}
+
+
 pid <- read.csv('data/moss_cover.csv')
 
 pid$cover_category[pid$cover_category == 'ercameria'] <- 'ericameria'
@@ -37,7 +68,8 @@ coverLong <-
   prop_cover %>% 
   gather( Category, percentCover, -distance ) %>% 
   mutate( distance = as.numeric(levels(distance)[distance])) %>% 
-  mutate( Category = factor( Category , labels = c("Bare sand", "ericameria", "lupine", "Moss patch", "Shrub patch")))
+  mutate( Category = factor( Category, 
+                             labels = c("Bare sand", "ericameria", "lupine", "Moss patch", "Shrub patch")))
 
 xTitle <- xlab_distance
 yTitle1 <- "Proportion cover"
@@ -76,7 +108,7 @@ coverWide <-
   coverLong %>% 
   spread(Category, percentCover)
 
-moss_cover_lm <- lm(data =  coverWide , `Moss patch` ~ poly(distance, 2) )
+moss_cover_lm <- lm(data = coverWide, `Moss patch` ~ poly(distance, 2) )
 
 # model hits per patch type across the gradient ------- 
 
@@ -88,44 +120,19 @@ no_shrub <- subset(pid, cover_category %in% c('bare', 'moss'))
 no_shrub$cover_category<-factor(no_shrub$cover_category)
 no_shrub <- no_shrub[, -c(2, 4)]
 
-hit_mod.binomial <- glm(hit ~ transect*cover_category, data = no_shrub, family = 'binomial')
+hit_mod.binomial <- glm(hit ~ transect*cover_category, 
+                        data = no_shrub, family = 'binomial')
+
 summary(hit_mod.binomial)
 
-all_spp_mod <- glm(hit ~ transect*cover_category, data = no_shrub, family = 'quasibinomial')
-anova(all_spp_mod, test = 'F')
-summary(all_spp_mod)
+all_hits_glm <- glm(hit ~ transect*cover_category, 
+                   data = no_shrub, family = 'quasibinomial')
 
-# add NA points to fill out prediction line in figure 
-gen_agg_hits_df <- function( my_mod ) { 
+anova(all_hits_glm, test = 'F')
+summary(all_hits_glm)
 
-  agg_data <- 
-    my_mod$data %>% 
-    group_by( transect, cover_category) %>% 
-    summarise( plant_points = sum(hit), total_points = n()) 
-    
-  agg_data <- 
-    expand.grid( transect = unique( my_mod$data$transect),  
-               cover_category = c('bare', 'moss')) %>% 
-    left_join(agg_data) %>% 
-    mutate( total_points = ifelse( is.na( total_points), 0, total_points ) )
-  
-  predicted <- data.frame(predict(my_mod, newdata = agg_data, se.fit = TRUE))
-  
-  predicted$upperSE <- predicted[, 1] + predicted[, 2]
-  predicted$lowerSE <- predicted[, 1] - predicted[, 2]
-  
-  hit_data <- cbind(agg_data, expit(predicted[,c(1,4,5)]))
-  
-  hit_data <- 
-    hit_data %>% 
-    mutate( hit = plant_points/total_points) %>% 
-    mutate( Category = factor( cover_category , levels = c('moss', 'bare'), ordered = T)) %>% 
-    mutate( Category = factor( Category, labels = c('Moss patch', 'Bare sand')))
-  
-  return( hit_data ) 
-}
 
-hit_data <- gen_agg_hits_df(all_spp_mod)
+hit_data <- gen_agg_hits_df(all_hits_glm)
 
 #### plot probability of plant being rooted in moss vs. bare ground 
 
@@ -174,7 +181,8 @@ p3 <-
     axis.title.x = element_text(margin = margin(c(10, 0, 0, 0)))) 
 
 
-p3_comb <- cowplot::plot_grid(p3 , p2_legend , ncol = 2, rel_widths = c(1, 0.3))
+p3_comb <- cowplot::plot_grid(p3, 
+                              p2_legend, ncol = 2, rel_widths = c(1, 0.3))
 
 p3_mod <- 
   ggdraw(p3_comb) + 
@@ -218,13 +226,10 @@ no_shrub <- subset(pid, cover_category %in% c('moss', 'bare'))
 table(no_shrub$cover_category)
 speciesTable <- table(no_shrub$species)
 
-length(speciesTable)
 #### total non-shrub points: 
 sum(table(no_shrub$cover_category))
 #### total non-shrub points with plants: 
 sum(speciesTable[ -1])
-
-barplot(speciesTable, horiz= TRUE, las = 2)
 
 spTableByCat <- table(no_shrub$species, no_shrub$cover_category)
 
@@ -252,7 +257,8 @@ hit_data <- gen_agg_hits_df(vm1)
 
 hit_plot <- p3 %+% hit_data + ggtitle('Vulpia')
 
-hit_plot <- cowplot::plot_grid(hit_plot , p2_legend , ncol = 2, rel_widths = c(1, 0.3))
+hit_plot <- cowplot::plot_grid(hit_plot, 
+                               p2_legend, ncol = 2, rel_widths = c(1, 0.3))
 
 hit_plot <- 
   ggdraw(hit_plot) + 
@@ -279,7 +285,7 @@ hit_data <- gen_agg_hits_df(bm1)
 
 hit_plot <- p3 %+% hit_data + ggtitle('Bromus')
 
-hit_plot <- cowplot::plot_grid(hit_plot , p2_legend , ncol = 2, rel_widths = c(1, 0.3))
+hit_plot <- cowplot::plot_grid(hit_plot, p2_legend , ncol = 2, rel_widths = c(1, 0.3))
 
 hit_plot <- 
   ggdraw(hit_plot) + 
@@ -305,7 +311,8 @@ hit_data <- gen_agg_hits_df(agm1)
 
 hit_plot <- p3 %+% hit_data + ggtitle('Annual Grass')
 
-hit_plot <- cowplot::plot_grid(hit_plot , p2_legend , ncol = 2, rel_widths = c(1, 0.3))
+hit_plot <- cowplot::plot_grid(hit_plot, 
+                               p2_legend, ncol = 2, rel_widths = c(1, 0.3))
 
 hit_plot <- 
   ggdraw(hit_plot) + 
@@ -321,10 +328,10 @@ d <- as.matrix( head( read.csv('data/moss_association_data.csv'), 1 ) )
 origin <- colnames(d)
 species <-  d[1, ]
 
-origin_table <- data.frame(  origin, species ) %>% mutate( origin = str_extract(pattern = '[a-z]+', origin ))
+origin_table <- data.frame(  origin, species ) %>% 
+  mutate( origin = str_extract(pattern = '[a-z]+', origin ))
 
 pid2 <- left_join(pid, origin_table, by = 'species')
-
 
 # exotic ------------------------------------------------------------------------------------------------------------
 edata <- 
@@ -340,9 +347,12 @@ anova(em1, test = 'F')
 
 hit_data <- gen_agg_hits_df(em1)
 
-hit_plot <- p3 %+% hit_data + ggtitle('Exotic Species')
+hit_plot <- p3 %+% 
+  hit_data + 
+  ggtitle('Exotic Species')
 
-hit_plot <- cowplot::plot_grid(hit_plot , p2_legend , ncol = 2, rel_widths = c(1, 0.3))
+hit_plot <- cowplot::plot_grid(hit_plot, 
+                               p2_legend, ncol = 2, rel_widths = c(1, 0.3))
 
 hit_plot <- 
   ggdraw(hit_plot) + 
@@ -351,7 +361,8 @@ hit_plot <-
             y = 0.17, size = 15)
 
 
-ggsave(filename= 'figures/eHits.png',  plot = hit_plot, height= 5, width = 8, units= 'in', dpi = 300 )
+ggsave(filename= 'figures/eHits.png',  
+       plot = hit_plot, height= 5, width = 8, units= 'in', dpi = 300 )
 
 # native ------------------------------------------------------------------------------------------------------------
 ndata <- 
@@ -367,9 +378,12 @@ anova(nm1, test = 'F')
 
 hit_data <- gen_agg_hits_df(nm1)
 
-hit_plot <- p3 %+% hit_data + ggtitle('Native Species')
+hit_plot <- p3 %+% 
+  hit_data + 
+  ggtitle('Native Species')
 
-hit_plot <- cowplot::plot_grid(hit_plot , p2_legend , ncol = 2, rel_widths = c(1, 0.3))
+hit_plot <- cowplot::plot_grid(hit_plot, 
+                               p2_legend, ncol = 2, rel_widths = c(1, 0.3))
 
 hit_plot <- 
   ggdraw(hit_plot) + 
@@ -377,4 +391,9 @@ hit_plot <-
             x = c(0.06, 0.82), 
             y = 0.17, size = 15)
 
-ggsave(filename= 'figures/nHits.png',  plot = hit_plot, height= 5, width = 8, units= 'in', dpi = 300 )
+ggsave(filename= 'figures/nHits.png',  
+       plot = hit_plot, height= 5, width = 8, units= 'in', dpi = 300 )
+
+
+save(moss_cover_lm, all_hits_glm, vm1, bm1, agm1, em1, nm1, 
+     file = 'output/point_intercept_models.rda')
