@@ -1,0 +1,247 @@
+---
+title: "Statistical Tables for Experimental Data"
+author: "Andrew Kleinhesselink"
+date: "12/18/2018"
+output: 
+  word_document:
+    reference_docx: 
+      word-style-template.docx
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+library(tidyverse)
+library(lme4)
+library(stringr)
+library(pander)
+library(emmeans)
+
+panderOptions('round',2)
+panderOptions('digits',10)
+panderOptions('keep.trailing.zeros',TRUE)
+
+load(file = '~/Dropbox/projects/moss_manuscript/output/experiment_models.rda')
+
+
+
+make_lrt_table <- function(m1) { 
+  m2 <- update(m1, . ~ . - stress:treatment)
+  m3 <- update(m2, . ~ . - treatment)
+  m4 <- update(m3, . ~ . - stress)
+  
+  LRT_table <- broom::tidy( anova(m4, m3, m2, m1))
+  
+  LRT_table <- 
+    LRT_table %>% 
+    dplyr::select(-BIC) %>% 
+    rename( '$\\chi^2$' = statistic ) %>% 
+    rename( 'Df' = Chi.Df) %>%
+    rename( 'P(>$\\chi^2$)' = p.value ) %>% 
+    mutate( term = factor(term, labels = c('stress:treatment', 'treatment', 'stress', 'NULL' )))
+  
+  return(LRT_table)
+}
+
+
+make_infls_table <- function(m_infls){ 
+  
+  temp_table <- broom::tidy( anova( m_infls, test = 'F') )
+
+  temp_table %>% 
+    rename( 'Df~denom~' = Resid..Df, 
+          'Res. Dev.' = Resid..Dev, 
+          'F-val' = statistic, 
+          'P(>F)' = p.value) %>% 
+    pander
+}
+
+
+
+
+```
+
+
+
+### Table 1. Fixed effects on Vulpia survival
+```{r echo=FALSE, warning=FALSE}
+
+V_surv_table <- make_lrt_table(vm1)
+pander(V_surv_table)
+
+```
+-----------------------------------
+
+### Table 2. Multiple comparison for Vulpia survival. P-values are adjusted by Sidak method for three tests. 
+```{r echo=FALSE, warning=FALSE, message = FALSE}
+
+vm_emeans <- emmeans(vm1, pairwise ~ treatment | stress , adj = 'sidak')
+
+vm_mct <- broom::tidy ( vm_emeans$contrasts ) %>% 
+  mutate( stress = str_extract(stress, pattern = '^[A-Za-z]+')) %>% 
+  rename('z-val' = z.ratio, 
+         'p-val' = p.value)
+
+pander ( vm_mct ) 
+
+
+```
+
+-----------------------------------
+
+
+### Table 3. Fixed effects on Bromus survival
+```{r echo=FALSE, warning=FALSE}
+
+B_surv_table <- make_lrt_table(bm1)
+pander(B_surv_table)
+
+```
+
+-----------------------------------
+
+### Table 4. Multiple comparison test Bromus survival. P-values are adjusted by Sidak method for three tests. 
+```{r echo=FALSE, warning=FALSE, message = FALSE}
+
+bm_emeans <- emmeans(bm1, pairwise ~ treatment | stress, adj = 'sidak' )
+
+bm_mct <- broom::tidy ( bm_emeans$contrasts ) %>% 
+  mutate( stress = str_extract(stress, pattern = '^[A-Za-z]+')) %>% 
+  rename('z-val' = z.ratio, 
+         'p-val' = p.value)
+
+
+pander ( bm_mct)
+
+
+```
+
+-----------------------------------
+
+
+### Table 5. Fixed effects on Vulpia aboveground biomass
+```{r echo=FALSE, warning=FALSE}
+
+V_mass_table <- make_lrt_table(vb1)
+pander(V_mass_table)
+
+```
+-----------------------------------
+
+
+### Table 6. Fixed effects on Bromus aboveground biomass
+```{r echo=FALSE, warning=FALSE}
+
+B_mass_table <- make_lrt_table(bb1)
+pander(B_mass_table)
+
+
+```
+
+-----------------------------------
+
+
+### Table 7. Multiple comparison test Bromus biomass.  P-values are adjusted by Sidak method for three tests. 
+```{r echo=FALSE, warning=FALSE}
+
+bb_emeans <- emmeans(bb1, pairwise ~ treatment | stress , adj = 'sidak')
+
+
+bb_mct <- broom::tidy ( bb_emeans$contrasts ) %>% 
+  mutate( stress = str_extract(stress, pattern = '^[A-Za-z]+')) %>% 
+  rename('t-val' = statistic, 
+         'p-val' = p.value)
+
+pander ( bb_mct ) 
+
+```
+
+-----------------------------------
+
+
+### Table 8. Fixed effects on Vulpia inflorescence production
+```{r echo=FALSE, warning=FALSE}
+
+make_infls_table(vf1_glm_qpois)
+
+```
+
+-----------------------------------
+
+### Table 9. Fixed effects on Bromus inflorescence production
+```{r echo=FALSE, warning=FALSE}
+
+make_infls_table(bf1_glm_qpois)
+
+```
+-----------------------------------
+
+### Table 10. Multiple comparison Bromus inflorescence numbers. P-values are adjusted by Sidak method for three tests. 
+```{r echo=FALSE, warning=FALSE}
+
+bf_emeans <- emmeans(bf1_glm_qpois, pairwise ~ treatment | stress , adj = 'sidak')
+
+bf_mct <- broom::tidy ( bf_emeans$contrasts ) %>% 
+  mutate( stress = str_extract(stress, pattern = '^[A-Za-z]+')) %>% 
+  rename('z-val' = z.ratio, 
+         'p-val' = p.value)
+
+pander ( bf_mct ) 
+
+
+
+```
+
+-----------------------------------
+
+
+
+### Table 11. Model summary for Vulpia survival
+```{r echo = F}
+
+summary(vm1)
+
+```
+----------------------------------- 
+
+### Table 12. Model summary for Bromus survival
+```{r echo = F}
+
+summary(bm1)
+
+```
+----------------------------------- 
+
+### Table 13. Model summary for Vulpia biomass 
+```{r echo = F}
+
+summary(vb1)
+
+```
+----------------------------------- 
+
+### Table 14. Model summary for Bromus biomass 
+```{r echo = F}
+
+summary(bb1)
+
+```
+----------------------------------- 
+
+### Table 15. Model summary for Vulpia inflorescence production 
+```{r echo = F}
+
+summary(vf1_glm_qpois)
+
+```
+----------------------------------- 
+
+### Table 16. Model summary for Bromus inflorescence production 
+```{r echo = F}
+
+summary(bf1_glm_qpois)
+
+```
+----------------------------------- 
+
