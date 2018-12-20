@@ -41,44 +41,6 @@ inv.logit <- function( x ) {
 
 }
 
-write_lrt_table <- function( mod1, mod2, outfile ) { 
-  lrt <-
-    data.frame(rbind(drop1(mod1, test = 'Chisq'),  
-                     drop1(mod2, test = 'Chisq')[2:3, ]))
-  
-  lrt$`terms removed` <- row.names(lrt)
-  
-  lrt <-
-    lrt %>% mutate(
-      AIC = round(AIC, 0),
-      LRT = round(LRT, 2),
-      Pr.Chi. = round(Pr.Chi., 3)
-    )
-  
-  print(xtable(lrt), 'html', outfile )
-}
-
-
-contrast_list <-
-  list(
-    `L:mp - bs` = c(1, -1, 0, 0, 0, 0),
-    `L:mp - mr` = c(1, 0, -1, 0, 0, 0),
-    `L:bs - mr` = c(0, 1, -1, 0, 0, 0),
-    `H:mp - bs` = c(0, 0, 0, 1, -1, 0),
-    `H:mp - mr` = c(0, 0, 0, 1, 0, -1),
-    `H:bs - mr` = c(0, 0, 0, 0, 1, -1),
-    `mp:L-H` = c(1, 0, 0, -1, 0, 0),
-    `bs:L-H` = c(0, 1, 0, 0, -1, 0),
-    `mr:L-H` = c(0, 0, 1, 0, 0, -1)
-  )
-
-treatment_contrasts <-
-  list(
-    `mp - bs` = c(1, -1, 0, 1, -1, 0) / 2,
-    `mp  - mr` = c(1, 0, -1, 1, 0, -1) / 2 ,
-    `bs - mr` = c(0, 1, -1, 0, 1, -1) / 2
-  )
-
 
 v <- read.csv("data/vulpia_data.csv")
 b <- read.csv('data/brdi_data.csv')
@@ -166,27 +128,6 @@ v_success <-
         data.frame(vm1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
 
-# success/survival output ------------------------------- # 
-
-tab_model(vm1, pred.labels = pred_labels, file = 'output/v_success_glmer_table.html')
-
-write_lrt_table(mod1 = vm1, vm2, outfile = 'output/v_success_lrt.html')
-
-v_success %>% 
-  rename(
-    `proportion survived` = result,
-    sd = stand_dev,
-    `S.E.` = stand_err,
-    `fitted mean` =  prob,
-    `Lower 95% C.L.` = asymp.LCL,
-    `Upper 95% C.L.` = asymp.UCL
-  ) %>% 
-  arrange( stress, treatment ) %>% 
-  xtable %>% 
-  print('html',
-      'output/v_success_stats.html')
-
-
 #### --------- Vulpia mass per plant ---------- # 
 vb1 <-
   lmer(l_mass ~ stress * treatment + (1 | block),
@@ -204,26 +145,6 @@ v_size <-
         data.frame(vb1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
 
-# size output -------- # 
-
-vm1_table <- tab_model(vb1, pred.labels  = pred_labels,
-                       file = 'output/v_size_lmer_table.html')
-
-
-write_lrt_table(vb1, vb2, 'output/v_size_lrt.html')
-
-v_size %>% 
-  rename(
-    `avg. size` = result,
-    sd = stand_dev,
-    `S.E.` = stand_err,
-    `fitted mean` =  emmean,
-    `Lower 95% C.L.` = asymp.LCL,
-    `Upper 95% C.L.` = asymp.UCL
-  ) %>% 
-  arrange( stress, treatment ) %>% 
-  xtable %>% 
-  print(  'html', 'output/v_size_stats.html' ) 
 
 #### ----------- Vulpia infls. per plant
 
@@ -268,32 +189,6 @@ v_infls <-
         data.frame(vf1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
 
-# write infls output --------------- # 
-
-vf1_table <- tab_model(vf1_glm_qpois, pred.labels = pred_labels,
-                       file = 'output/v_infls_glm_table.html')
-
-data.frame( rbind( drop1( vf1_glm_qpois, test = 'Chisq'), 
-                   drop1(vf2_glm_qpois, test = 'Chisq')[2:3, ])) %>% 
-  mutate( `terms removed` = row.names(. ) , 
-          Pr.Chi. = round(Pr..Chi., 3)) %>% 
-  xtable %>% 
-  print( 'html', 'output/v_infls_lrt.html' )
-
-v_infls %>% 
-  rename(
-    `avg. infls. per plant` = result,
-    sd = stand_dev,
-    `S.E.` = stand_err,
-    `fitted mean` =  rate,
-    `Lower 95% C.L.` = asymp.LCL,
-    `Upper 95% C.L.` = asymp.UCL
-  ) %>% 
-  arrange( stress, treatment ) %>% 
-  xtable %>% 
-  print(  'html', 'output/v_flowers_summary.html' ) 
-
-
 #### ---- Bromus success/survival ------------------------------ # 
 
 bm1 <-
@@ -302,6 +197,7 @@ bm1 <-
     data = b,
     family = binomial
   )
+
 
 bm2 <- update(bm1 , . ~ . - treatment:stress)
 
@@ -313,27 +209,6 @@ b_success <-
   merge(b_success, 
         data.frame(bm1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
-
-# success/survival output ------------------------------- # 
-
-tab_model(bm1, pred.labels = pred_labels, file = 'output/b_success_glmer_table.html')
-
-write_lrt_table(mod1 = bm1, bm2, outfile = 'output/b_success_lrt.html')
-
-b_success %>% 
-  rename(
-    `proportion survived` = result,
-    sd = stand_dev,
-    `S.E.` = stand_err,
-    `fitted mean` =  prob,
-    `Lower 95% C.L.` = asymp.LCL,
-    `Upper 95% C.L.` = asymp.UCL
-  ) %>% 
-  arrange( stress, treatment ) %>% 
-  xtable %>% 
-  print('html',
-        'output/b_success_stats.html')
-
 
 #### --------- Bromus mass per plant ---------- # 
 bb1 <-
@@ -351,27 +226,6 @@ b_size <-
   merge(b_size, 
         data.frame(bb1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
-
-# size output -------- # 
-
-bm1_table <- tab_model(bb1, pred.labels  = pred_labels,
-                       file = 'output/b_size_lmer_table.html')
-
-
-write_lrt_table(bb1, bb2, 'output/b_size_lrt.html')
-
-b_size %>% 
-  rename(
-    `avg. size` = result,
-    sd = stand_dev,
-    `S.E.` = stand_err,
-    `fitted mean` =  emmean,
-    `Lower 95% C.L.` = asymp.LCL,
-    `Upper 95% C.L.` = asymp.UCL
-  ) %>% 
-  arrange( stress, treatment ) %>% 
-  xtable %>% 
-  print(  'html', 'output/b_size_stats.html' ) 
 
 #### ----------- bromus infls. per plant
 
@@ -415,29 +269,21 @@ b_infls <-
         data.frame(bf1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
 
-# write infls output --------------- # 
 
-bf1_table <- tab_model(bf1_glm_qpois, pred.labels = pred_labels,
-                       file = 'output/b_infls_glm_table.html')
 
-data.frame( rbind( drop1( bf1_glm_qpois, test = 'Chisq'), 
-                   drop1( bf2_glm_qpois, test = 'Chisq')[2:3, ])) %>% 
-  mutate( `terms removed` = row.names(. ) , 
-          Pr.Chi. = round(Pr..Chi., 3)) %>% 
-  xtable %>% 
-  print( 'html', 'output/b_infls_lrt.html' )
+# Save models for generation of statistical tables --------- # 
 
-b_infls %>% 
-  rename(
-    `avg. infls. per plant` = result,
-    sd = stand_dev,
-    `S.E.` = stand_err,
-    `fitted mean` =  rate,
-    `Lower 95% C.L.` = asymp.LCL,
-    `Upper 95% C.L.` = asymp.UCL
-  ) %>% 
-  arrange( stress, treatment ) %>% 
-  xtable %>% 
-  print(  'html', 'output/b_flowers_summary.html' ) 
-
+save(vm1, 
+     vb1, 
+     vf1_glm_qpois, 
+     bm1, 
+     bb1, 
+     bf1_glm_qpois, 
+     v, 
+     b,
+     v_infls,
+     b_infls,
+     vfdata, 
+     bfdata, 
+     file = 'output/experiment_models.rda')
 
