@@ -2,11 +2,7 @@ remove(list = ls())
 
 library(tidyverse)
 library(lme4)
-library(MASS)
-library(lmtest)
 library(emmeans)
-library(sjPlot)
-library(xtable)
 
 pred_labels <-
   c(
@@ -269,6 +265,11 @@ b_infls <-
         data.frame(bf1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
 
+
+# Save processed data for figures -------------------------- #
+
+save(prop_success, size, infls, 
+     file = 'output/processed_experiment_data.rda')
 
 
 # Save models for generation of statistical tables --------- # 
