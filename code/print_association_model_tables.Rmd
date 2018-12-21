@@ -1,5 +1,5 @@
 ---
-title: "Statistical Tables for Observational Data"
+title: "Statistical Tables for Vascular Plant Association with Moss"
 author: "Andrew Kleinhesselink"
 date: "12/18/2018"
 output: 
@@ -19,7 +19,7 @@ load(file = '~/Dropbox/projects/moss_manuscript/output/point_intercept_models.rd
 ```
 
 
-### Table 1. Linear model for moss cover across the gradient 
+### Table 1. Summary of linear model for moss cover across the gradient 
 ```{r echo = F}
 
 summary(moss_cover_lm)
@@ -28,86 +28,107 @@ summary(moss_cover_lm)
 
 ----------------------------------- 
 
-### Table 2. Model summary for plant association with moss across the gradient 
+### Table 2. Model summary for all vascular plant species association with moss across the gradient 
 ```{r echo = F}
 
 summary(all_hits_glm)
 
 ```
 
-### Table 3. F-tests for fixed effects of plant association with moss 
+--------------- 
+
+### Table 3. F-tests all vascular plant species association with moss
 ```{r echo = F}
 
 anova(all_hits_glm, test = 'F')
 
 ```
 
-### Table 4. Model summary for annual exotic grass association with moss across the gradient
-```{r echo = F}
+---------------------- 
 
-summary(agm1)
-
-```
-
-### Table 5. F-tests for fixed effects of annual exotic grass association with moss 
-```{r echo = F}
-
-anova(agm1, test = 'F')
-
-```
-
-### Table 6. Model summary for Vulpia association with moss across the gradient
-```{r echo = F}
-
-summary(vm1)
-
-```
-
-### Table 7. F-tests for fixed effects of Vulpia association with moss 
-```{r echo = F}
-
-anova(vm1, test = 'F')
-
-```
-
-### Table 8. Model summary for Bromus association with moss across the gradient
-```{r echo = F}
-
-summary(bm1)
-
-```
-
-### Table 9. F-tests for fixed effects of Bromus association with moss 
-```{r echo = F}
-
-anova(bm1, test = 'F')
-
-```
-
-### Table 10. Model summary for exotic species association with moss across the gradient
+### Table 4. Model summary for exotic species association with moss across the gradient
 ```{r echo = F}
 
 summary(em1)
 
 ```
 
-### Table 11. F-tests for fixed effects of exotic species association with moss 
+--------------------- 
+
+### Table 5. F-tests for fixed effects of exotic species association with moss 
 ```{r echo = F}
 
 anova(em1, test = 'F')
 
 ```
 
-### Table 12. Model summary for native species association with moss across the gradient
+-------------------- 
+
+### Table 6. Model summary for native species association with moss across the gradient
 ```{r echo = F}
 
 summary(nm1)
 
 ```
 
-### Table 13. F-tests for fixed effects of native species association with moss 
+-------------------- 
+
+### Table 7. F-tests for fixed effects of native species association with moss 
 ```{r echo = F}
 
 anova(nm1, test = 'F')
+
+```
+
+-------------------- 
+
+### Table 8. Model summary for annual exotic grass association with moss across the gradient
+```{r echo = F}
+
+summary(agm1)
+
+```
+
+### Table 9. F-tests for fixed effects of annual exotic grass association with moss 
+```{r echo = F}
+
+anova(agm1, test = 'F')
+
+```
+
+-------------------- 
+
+
+### Table 10. Model summary for Vulpia association with moss across the gradient
+```{r echo = F}
+
+summary(vm1)
+
+```
+
+-------------------- 
+
+### Table 11. F-tests for fixed effects of Vulpia association with moss 
+```{r echo = F}
+
+anova(vm1, test = 'F')
+
+```
+
+-------------------- 
+
+### Table 12. Model summary for Bromus association with moss across the gradient
+```{r echo = F}
+
+summary(bm1)
+
+```
+
+-------------------- 
+
+### Table 13. F-tests for fixed effects of Bromus association with moss 
+```{r echo = F}
+
+anova(bm1, test = 'F')
 
 ```

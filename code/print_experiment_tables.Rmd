@@ -1,5 +1,5 @@
 ---
-title: "Statistical Tables for Experimental Data"
+title: "Statistical Tables for Moss Removal Experiment"
 author: "Andrew Kleinhesselink"
 date: "12/18/2018"
 output: 
@@ -63,35 +63,7 @@ make_infls_table <- function(m_infls){
 ```
 
 
-
-### Table 1. Fixed effects on Vulpia survival
-```{r echo=FALSE, warning=FALSE}
-
-V_surv_table <- make_lrt_table(vm1)
-pander(V_surv_table)
-
-```
------------------------------------
-
-### Table 2. Multiple comparison for Vulpia survival. P-values are adjusted by Sidak method for three tests. 
-```{r echo=FALSE, warning=FALSE, message = FALSE}
-
-vm_emeans <- emmeans(vm1, pairwise ~ treatment | stress , adj = 'sidak')
-
-vm_mct <- broom::tidy ( vm_emeans$contrasts ) %>% 
-  mutate( stress = str_extract(stress, pattern = '^[A-Za-z]+')) %>% 
-  rename('z-val' = z.ratio, 
-         'p-val' = p.value)
-
-pander ( vm_mct ) 
-
-
-```
-
------------------------------------
-
-
-### Table 3. Fixed effects on Bromus survival
+### Table 1. Fixed effects on Bromus survival
 ```{r echo=FALSE, warning=FALSE}
 
 B_surv_table <- make_lrt_table(bm1)
@@ -101,7 +73,7 @@ pander(B_surv_table)
 
 -----------------------------------
 
-### Table 4. Multiple comparison test Bromus survival. P-values are adjusted by Sidak method for three tests. 
+### Table 2. Multiple comparison test Bromus survival. P-values are adjusted by Sidak method for three tests. 
 ```{r echo=FALSE, warning=FALSE, message = FALSE}
 
 bm_emeans <- emmeans(bm1, pairwise ~ treatment | stress, adj = 'sidak' )
@@ -120,17 +92,7 @@ pander ( bm_mct)
 -----------------------------------
 
 
-### Table 5. Fixed effects on Vulpia aboveground biomass
-```{r echo=FALSE, warning=FALSE}
-
-V_mass_table <- make_lrt_table(vb1)
-pander(V_mass_table)
-
-```
------------------------------------
-
-
-### Table 6. Fixed effects on Bromus aboveground biomass
+### Table 3. Fixed effects on Bromus aboveground biomass
 ```{r echo=FALSE, warning=FALSE}
 
 B_mass_table <- make_lrt_table(bb1)
@@ -142,7 +104,7 @@ pander(B_mass_table)
 -----------------------------------
 
 
-### Table 7. Multiple comparison test Bromus biomass.  P-values are adjusted by Sidak method for three tests. 
+### Table 4. Multiple comparison test Bromus biomass.  P-values are adjusted by Sidak method for three tests. 
 ```{r echo=FALSE, warning=FALSE}
 
 bb_emeans <- emmeans(bb1, pairwise ~ treatment | stress , adj = 'sidak')
@@ -160,16 +122,7 @@ pander ( bb_mct )
 -----------------------------------
 
 
-### Table 8. Fixed effects on Vulpia inflorescence production
-```{r echo=FALSE, warning=FALSE}
-
-make_infls_table(vf1_glm_qpois)
-
-```
-
------------------------------------
-
-### Table 9. Fixed effects on Bromus inflorescence production
+### Table 5. Fixed effects on Bromus inflorescence production
 ```{r echo=FALSE, warning=FALSE}
 
 make_infls_table(bf1_glm_qpois)
@@ -177,7 +130,7 @@ make_infls_table(bf1_glm_qpois)
 ```
 -----------------------------------
 
-### Table 10. Multiple comparison Bromus inflorescence numbers. P-values are adjusted by Sidak method for three tests. 
+### Table 6. Multiple comparison Bromus inflorescence numbers. P-values are adjusted by Sidak method for three tests. 
 ```{r echo=FALSE, warning=FALSE}
 
 bf_emeans <- emmeans(bf1_glm_qpois, pairwise ~ treatment | stress , adj = 'sidak')
@@ -196,16 +149,54 @@ pander ( bf_mct )
 -----------------------------------
 
 
+### Table 7. Fixed effects on Vulpia survival
+```{r echo=FALSE, warning=FALSE}
 
-### Table 11. Model summary for Vulpia survival
-```{r echo = F}
-
-summary(vm1)
+V_surv_table <- make_lrt_table(vm1)
+pander(V_surv_table)
 
 ```
------------------------------------ 
+-----------------------------------
 
-### Table 12. Model summary for Bromus survival
+### Table 8. Multiple comparison for Vulpia survival. P-values are adjusted by Sidak method for three tests. 
+```{r echo=FALSE, warning=FALSE, message = FALSE}
+
+vm_emeans <- emmeans(vm1, pairwise ~ treatment | stress , adj = 'sidak')
+
+vm_mct <- broom::tidy ( vm_emeans$contrasts ) %>% 
+  mutate( stress = str_extract(stress, pattern = '^[A-Za-z]+')) %>% 
+  rename('z-val' = z.ratio, 
+         'p-val' = p.value)
+
+pander ( vm_mct ) 
+
+
+```
+
+-----------------------------------
+
+
+### Table 9. Fixed effects on Vulpia aboveground biomass
+```{r echo=FALSE, warning=FALSE}
+
+V_mass_table <- make_lrt_table(vb1)
+pander(V_mass_table)
+
+```
+-----------------------------------
+
+
+### Table 10. Fixed effects on Vulpia inflorescence production
+```{r echo=FALSE, warning=FALSE}
+
+make_infls_table(vf1_glm_qpois)
+
+```
+
+-----------------------------------
+
+
+### Table 11. Model summary for Bromus survival
 ```{r echo = F}
 
 summary(bm1)
@@ -213,15 +204,8 @@ summary(bm1)
 ```
 ----------------------------------- 
 
-### Table 13. Model summary for Vulpia biomass 
-```{r echo = F}
 
-summary(vb1)
-
-```
------------------------------------ 
-
-### Table 14. Model summary for Bromus biomass 
+### Table 12. Model summary for Bromus biomass 
 ```{r echo = F}
 
 summary(bb1)
@@ -229,18 +213,35 @@ summary(bb1)
 ```
 ----------------------------------- 
 
-### Table 15. Model summary for Vulpia inflorescence production 
+### Table 13. Model summary for Bromus inflorescence production 
 ```{r echo = F}
 
-summary(vf1_glm_qpois)
+summary(bf1_glm_qpois)
 
 ```
 ----------------------------------- 
 
-### Table 16. Model summary for Bromus inflorescence production 
+### Table 14. Model summary for Vulpia survival
 ```{r echo = F}
 
-summary(bf1_glm_qpois)
+summary(vm1)
+
+```
+----------------------------------- 
+
+### Table 15. Model summary for Vulpia biomass 
+```{r echo = F}
+
+summary(vb1)
+
+```
+----------------------------------- 
+
+
+### Table 16. Model summary for Vulpia inflorescence production 
+```{r echo = F}
+
+summary(vf1_glm_qpois)
 
 ```
 ----------------------------------- 

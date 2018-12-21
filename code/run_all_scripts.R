@@ -3,8 +3,6 @@
 
 rm(list = ls())
 
-library(tidyverse)
-
 source( 'code/point_intercept_analysis.R' )
 
 source( 'code/moss_removal_analysis.R' ) 
