@@ -324,12 +324,8 @@ ggsave(filename= 'figures/agrassHits.png',
        plot = hit_plot, height= 5, width = 8, units= 'in', dpi = 300 )
 
 # hits by origin ---------------------------------------------------------------------------------------------------- 
-d <- as.matrix( head( read.csv('data/moss_association_data.csv'), 1 ) )
-origin <- colnames(d)
-species <-  d[1, ]
-
-origin_table <- data.frame(  origin, species ) %>% 
-  mutate( origin = str_extract(pattern = '[a-z]+', origin ))
+origin_table <-  read.csv('data/species_info.csv')
+origin_table$origin <- as.character( origin_table$origin )
 
 pid2 <- left_join(pid, origin_table, by = 'species')
 
@@ -347,8 +343,8 @@ anova(em1, test = 'F')
 
 hit_data <- gen_agg_hits_df(em1)
 
-hit_plot <- p3 %+% 
-  hit_data + 
+hit_plot <- 
+  p3 %+% hit_data + 
   ggtitle('Exotic Species')
 
 hit_plot <- cowplot::plot_grid(hit_plot, 
