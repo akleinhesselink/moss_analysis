@@ -218,12 +218,19 @@ bb1 <- update(bb1, REML = TRUE)
 bb1_emmeans <- emmeans(bb1, pairwise ~ treatment | stress , 
                        type = 'response')
 
+
+bb2_emmeans <- emmeans(bb2, pairwise  ~ treatment, type = 'response')
+
+bb2_emmeans
+
 b_size <-
   merge(b_size, 
         data.frame(bb1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
 
-#### ----------- bromus infls. per plant
+
+
+#### ----------- Bromus infls. per plant
 
 # Doesn't converge -------------------------------------------------------- 
 # bf1glmer <-
