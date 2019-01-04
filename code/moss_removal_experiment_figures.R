@@ -49,8 +49,8 @@ fig1 <-
             aes( x = x_pos, y = y_pos, label = label, ymin = 0, ymax = 0, color = NULL), size = 5, show.legend = FALSE) + 
   scale_y_continuous(yTitle1, labels = percent_format()) + 
   xlab(xTitle) + 
-  scale_shape_manual(values = c(19, 2, 15))  + 
-  scale_color_manual(values = c('black', 'black', 'darkgray')) + 
+  scale_shape_manual(values = c(19, 2, 0))  + 
+  scale_color_manual(values = c('black', 'black', 'black')) + 
   guides(color = guide_legend(override.aes = list(linetype = 0, size = 5))) +
   facet_grid( . ~ species) +   
   moss_theme
@@ -66,8 +66,8 @@ fig2 <-
   geom_text(data = label_df[3:4,], aes( x = x_pos, y = y_pos*max(size$result) + 0.3, label = label, ymin = 0, ymax = 0), size = 5, vjust = 0.1, show.legend = FALSE) + 
   scale_y_continuous(yTitle2) + 
   xlab(xTitle) + 
-  scale_shape_manual(values = c(19, 2, 15))  + 
-  scale_color_manual(values = c('black', 'black', 'darkgray')) + 
+  scale_shape_manual(values = c(19, 2, 0))  + 
+  scale_color_manual(values = c('black', 'black', 'black')) + 
   guides(color = guide_legend(override.aes = list(linetype = 0, size = 5))) +
   facet_grid( . ~ species) +   
   moss_theme
@@ -86,8 +86,8 @@ fig3 <- ggplot(data = infls, aes( x = Stress, y = result, ymin = result - stand_
             size = 5, vjust = 0.1, show.legend = FALSE) + 
   scale_y_continuous(yTitle3) + 
   xlab(xTitle) + 
-  scale_shape_manual(values = c(19, 2, 15))  + 
-  scale_color_manual(values = c('black', 'black', 'darkgray')) + 
+  scale_shape_manual(values = c(19, 2, 0))  + 
+  scale_color_manual(values = c('black', 'black', 'black')) + 
   guides(color = guide_legend(override.aes = list(linetype = 0, size = 5))) +
   facet_grid( . ~ species) +   
   moss_theme

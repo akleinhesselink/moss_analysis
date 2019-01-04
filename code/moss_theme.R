@@ -3,6 +3,7 @@
 moss_theme <- 
   theme_bw() +
   theme(
+    axis.line = element_line(colour = 'black'),
     panel.grid = element_blank(),
     legend.key = element_blank(),
     legend.key.width = unit(3, 'line'),

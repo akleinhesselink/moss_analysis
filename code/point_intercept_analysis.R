@@ -87,10 +87,10 @@ p1 <- ggplot(subset(coverLong, Category %in% c('Moss patch', 'Bare sand', 'Shrub
   xlab(xTitle) + 
   ylab(yTitle1) + 
   ylim( 0, 1) + 
-  scale_color_manual(values = c('black', 'black', 'darkgray')) + 
+  scale_color_manual(values = c('black', 'black', 'black')) + 
   scale_y_continuous(labels = percent_format(accuracy = 1)) + 
   moss_theme + 
-  scale_shape_manual(values = c(19, 2, 15)) + 
+  scale_shape_manual(values = c(19, 2, 0)) + 
   theme(legend.position = 'right',
         legend.justification = 0, 
         legend.key.width = unit(3.5, 'line'),
