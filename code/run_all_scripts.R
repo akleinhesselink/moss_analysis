@@ -1,9 +1,10 @@
-# All analyses for "Moss controls exotic annual grass invasion: 
+# All analyses for "Effects of native bryophytes on exotic grass invasion: 
 # a test of the stress gradient hypothesis" 
 # 
-# Note:  To run all the scripts for the analysis set the working directory to 
-# the 'moss_manuscript' folder then run this script. All scripts and data files
-# must be present. 
+# Instructions: To recreate analyses and figures, open the "moss_analysis.Rproj" file 
+# in Rstudio and then run this script. Alternatively set the working directory to the 
+# "moss_analysis" folder and then run this script. All R scripts must be in the code 
+# folder and all the data files must be in the data folder. 
 
 rm(list = ls())
 
