@@ -134,6 +134,17 @@ summary(all_hits_glm)
 
 hit_data <- gen_agg_hits_df(all_hits_glm)
 
+
+hit_data %>% 
+  ungroup() %>%
+  group_by( Category ) %>% 
+  summarise( sum( plant_points, na.rm= T), sum(total_points))
+
+View(hit_data %>% 
+  ungroup() %>% 
+  group_by(transect) %>% 
+  summarise( sum(total_points)))
+
 #### plot probability of plant being rooted in moss vs. bare ground 
 
 p2 <-  
@@ -220,6 +231,7 @@ prop_hit <- merge(points, sum_hits)
 prop_hit$success_prob <- prop_hit$hit/prop_hit$points
 prop_hit$no_hit <- prop_hit$points - prop_hit$hit 
 
+prop_hit
 ######## species specific analysis          #####################
 no_shrub <- subset(pid, cover_category %in% c('moss', 'bare'))
 
@@ -239,6 +251,8 @@ spTableByCat <- spTableByCat[ spTableByCat$Var2 %in% c('moss', 'bare'),  ]
 
 ggplot(spTableByCat, aes(x = Var1, y = Freq, fill = Var2)) + 
   geom_bar( stat = 'identity', position = 'dodge') + coord_flip()
+
+spTableByCat %>% filter( Var1 %in% c('vubr', 'brdi'))
 
 ######## vulpia hits in moss and bare sand sub-analysis #########
 
