@@ -22,8 +22,7 @@ panderOptions('round',2)
 panderOptions('digits',10)
 panderOptions('keep.trailing.zeros',TRUE)
 
-load(file = '~/Dropbox/projects/moss_manuscript/output/experiment_models.rda')
-
+load(file = '../output/experiment_models.rda') 
 
 
 make_lrt_table <- function(m1) { 

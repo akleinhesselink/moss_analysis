@@ -140,11 +140,6 @@ hit_data %>%
   group_by( Category ) %>% 
   summarise( sum( plant_points, na.rm= T), sum(total_points))
 
-View(hit_data %>% 
-  ungroup() %>% 
-  group_by(transect) %>% 
-  summarise( sum(total_points)))
-
 #### plot probability of plant being rooted in moss vs. bare ground 
 
 p2 <-  
