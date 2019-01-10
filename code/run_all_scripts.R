@@ -1,7 +1,19 @@
 # All analyses for "Moss controls exotic annual grass invasion: 
 # a test of the stress gradient hypothesis" 
+# 
+# Note:  To run all the scripts for the analysis set the working directory to 
+# the 'moss_manuscript' folder then run this script. All scripts and data files
+# must be present. 
 
 rm(list = ls())
+
+library(tidyverse)
+library(scales)
+library(grid)
+library(gridExtra)
+library(cowplot)
+library(lme4)
+library(emmeans)
 
 source( 'code/point_intercept_analysis.R' )
 
