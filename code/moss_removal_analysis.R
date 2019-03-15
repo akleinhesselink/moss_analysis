@@ -124,6 +124,14 @@ v_success <-
         data.frame(vm1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
 
+stress_effect <- glm(
+  cbind(final_count, trials - final_count ) ~ stress, data = v[v$treatment == 'Bare sand', ], 
+  family = binomial
+  )
+
+summary( stress_effect )
+drop1(stress_effect, test = 'Chisq')
+
 #### --------- Vulpia mass per plant ---------- # 
 vb1 <-
   lmer(l_mass ~ stress * treatment + (1 | block),
@@ -141,6 +149,13 @@ v_size <-
         data.frame(vb1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
 
+
+stress_effect <- lm(
+  l_mass ~ stress, data = v[v$treatment == 'Bare sand', ]
+)
+
+summary( stress_effect )
+drop1(stress_effect, test = 'Chisq')
 
 #### ----------- Vulpia infls. per plant
 
@@ -185,6 +200,13 @@ v_infls <-
         data.frame(vf1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
 
+
+stress_effect <- glm(
+  infls ~ offset(log_final_count) + stress, data = vfdata[vfdata$treatment == 'Bare sand', ], family = 'quasipoisson'
+)
+summary( stress_effect )
+drop1(stress_effect, test = 'Chisq')
+
 #### ---- Bromus success/survival ------------------------------ # 
 
 bm1 <-
@@ -205,6 +227,15 @@ b_success <-
   merge(b_success, 
         data.frame(bm1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
+
+
+stress_effect <- glm(
+  cbind(final_count, trials - final_count ) ~ stress, data = b[b$treatment == 'Bare sand', ], 
+  family = binomial
+)
+
+summary( stress_effect )
+drop1(stress_effect, test = 'Chisq')
 
 #### --------- Bromus mass per plant ---------- # 
 bb1 <-
@@ -229,6 +260,12 @@ b_size <-
         by = c('treatment', 'stress'))
 
 
+stress_effect <- lm(
+  l_mass ~ stress, data = b[b$treatment == 'Bare sand', ]
+)
+
+summary( stress_effect )
+drop1( stress_effect , test = 'Chisq')
 
 #### ----------- Bromus infls. per plant
 
@@ -272,6 +309,13 @@ b_infls <-
         data.frame(bf1_emmeans$emmeans), 
         by = c('treatment', 'stress'))
 
+stress_effect <- glm(
+  infls ~ offset( log_final_count) + stress, data = bfdata[bfdata$treatment == 'Bare sand', ]
+)
+
+summary( stress_effect )
+
+drop1( stress_effect, test = 'Chisq')
 
 # Save processed data for figures -------------------------- #
 
