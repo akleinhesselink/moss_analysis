@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list = ls())
 library(tidyverse)
 
-load(file = '~/Dropbox/projects/moss_manuscript/output/point_intercept_models.rda')
+load(file = '~/Dropbox/projects/moss_analysis/output/point_intercept_models.rda')
 
 ```
 
