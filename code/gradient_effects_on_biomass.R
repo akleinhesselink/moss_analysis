@@ -11,7 +11,21 @@ biomass <-
 
 tbio <- 
   biomass %>% 
-  filter( species == 'total biomass')
+  filter( species == 'total biomass' ) 
+
+biomass %>% 
+  filter( species %in% c('total biomass', 'erla')) %>% 
+  spread( species, biomass, fill = 0) %>% 
+  mutate( nonerla = `total biomass` - erla) %>% 
+  ggplot( aes( x = Distance, y = nonerla, color = `Treat Combo`)) + 
+  geom_point() + 
+  geom_line()
+  
+
+tbio %>% 
+  filter( `Treat Combo` == 'C') %>% 
+  ggplot(aes( x = Distance, y = biomass)) + 
+  geom_point()
 
 tbio$Excluded <- factor(tbio$`Treat Combo`, labels = c('None', 'Deer', 'Rabbits', 'Deer & Rabbits'))
 

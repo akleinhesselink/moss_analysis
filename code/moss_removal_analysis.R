@@ -7,13 +7,12 @@ library(emmeans)
 pred_labels <-
   c(
     'Intercept', 
-    'High stress',
+    'NW',
     'Bare sand',
     'Moss removed',
-    'High stress:Bare sand',
-    'High stress:Moss removed'
+    'NW:Bare sand',
+    'NW:Moss removed'
   )
-
 
 gen_results = function(df, formu, n, sp_name) {
   res = aggregate(formu, data = df, 'mean')
@@ -44,10 +43,9 @@ b <- read.csv('data/brdi_data.csv')
 v$trials <- 5
 b$trials <- 5
 
-v$stress <- factor(v$stress, levels = c('low', 'high'))
-b$stress <- factor (b$stress, levels = c('low', 'high'))
-levels(v$stress) <- c('Low stress', 'High stress')
-levels(b$stress) <- c('Low stress', 'High stress')
+v$position <- factor(v$position, levels = c('SE', 'NW'))
+b$position <- factor(b$position, levels = c('SE', 'NW'))
+
 levels(v$treatment) <- c('Bare sand', 'Moss patch', 'Moss removed')
 levels(b$treatment) <- c('Bare sand', 'Moss patch', 'Moss removed')
 
@@ -66,26 +64,27 @@ b$infls_per_plant <- b$infls / b$final_count
 v$logit_ps <- logit(v$prop_success)
 
 N <- table(v[, c(2, 3)])
-f_success <- formula("prop_success ~ treatment + stress")
-f_size <- formula("l_mass  ~ treatment + stress")
-f_infls <- formula("infls_per_plant ~ treatment + stress")
+f_success <- formula("prop_success ~ treatment + position")
+f_size <- formula("l_mass  ~ treatment + position")
+f_infls <- formula("infls_per_plant ~ treatment + position")
 
 v_success <- gen_results(v, f_success, 9, "Vulpia")
+
 b_success <- gen_results(b, f_success, 9, "Bromus")
 prop_success <- rbind(v_success, b_success)
-names(prop_success)[1:2] <- c('Treatment', 'Stress')
+names(prop_success)[1:2] <- c('Treatment', 'Position')
 
 # Final biomass data ------------------------ # 
 
 v_size <- gen_results(v, f_size, 9, "Vulpia")
 b_size <- gen_results(b, f_size, 9, "Bromus")
 size <- rbind(v_size, b_size)
-names(size)[1:2] <- c('Treatment', 'Stress')
+names(size)[1:2] <- c('Treatment', 'Position')
 
 # Final inflorescence numbers ----------------- # 
 vfdata <- 
   v[!v$final_count == 0,] %>% 
-  dplyr::select(stress, treatment, block , infls, final_count) %>% 
+  dplyr::select(position, treatment, block , infls, final_count) %>% 
   mutate( block = factor(block), 
           log_final_count = log(final_count), 
           infls_per_plant = infls/final_count)
@@ -93,7 +92,7 @@ vfdata <-
 
 bfdata <- 
   b[!b$final_count == 0,] %>% 
-  dplyr::select(stress, treatment, block , infls, final_count) %>% 
+  dplyr::select(position, treatment, block , infls, final_count) %>% 
   mutate( block = factor(block), 
           log_final_count = log(final_count) ,
           infls_per_plant = infls/final_count)
@@ -102,67 +101,67 @@ bfdata <-
 v_infls <- gen_results(vfdata, f_infls, 9, "Vulpia")
 b_infls <- gen_results(bfdata, f_infls, 9, "Bromus")
 infls <- rbind(v_infls, b_infls)
-names(infls)[1:2] <- c('Treatment', 'Stress')
+names(infls)[1:2] <- c('Treatment', 'Position')
 
 #### --- Vulpia final count -------------------------------------------
 
 vm1 <-
   glmer(
-    cbind(final_count, trials - final_count) ~  stress + treatment + treatment:stress + (1 | block),
+    cbind(final_count, trials - final_count) ~  position + treatment + treatment:position + (1 | block),
     data = v,
     family = binomial
   )
 
-vm2 <- update(vm1 , . ~ . - treatment:stress)
+vm2 <- update(vm1 , . ~ . - treatment:position)
 
 vm1_emmeans <-
-  emmeans(vm1, pairwise ~ treatment | stress, 
+  emmeans(vm1, pairwise ~ treatment | position, 
           type = 'response')
 
 v_success <-
   merge(v_success, 
         data.frame(vm1_emmeans$emmeans), 
-        by = c('treatment', 'stress'))
+        by = c('treatment', 'position'))
 
-stress_effect <- glm(
-  cbind(final_count, trials - final_count ) ~ stress, data = v[v$treatment == 'Bare sand', ], 
+position_effect <- glm(
+  cbind(final_count, trials - final_count ) ~ position, data = v[v$treatment == 'Bare sand', ], 
   family = binomial
   )
 
-summary( stress_effect )
-drop1(stress_effect, test = 'Chisq')
+summary( position_effect )
+drop1(position_effect, test = 'Chisq')
 
 #### --------- Vulpia mass per plant ---------- # 
 vb1 <-
-  lmer(l_mass ~ stress * treatment + (1 | block),
+  lmer(l_mass ~ position * treatment + (1 | block),
        data = v,
        REML = FALSE)
 
-vb2 <- update(vb1, . ~ . - treatment:stress)
+vb2 <- update(vb1, . ~ . - treatment:position)
 vb1 <- update(vb1, REML = TRUE)
 
-vb1_emmeans <- emmeans(vb1, pairwise ~ treatment | stress , 
+vb1_emmeans <- emmeans(vb1, pairwise ~ treatment | position , 
                        type = 'response')
 
 v_size <-
   merge(v_size, 
         data.frame(vb1_emmeans$emmeans), 
-        by = c('treatment', 'stress'))
+        by = c('treatment', 'position'))
 
 
-stress_effect <- lm(
-  l_mass ~ stress, data = v[v$treatment == 'Bare sand', ]
+position_effect <- lm(
+  l_mass ~ position, data = v[v$treatment == 'Bare sand', ]
 )
 
-summary( stress_effect )
-drop1(stress_effect, test = 'Chisq')
+summary( position_effect )
+drop1(position_effect, test = 'Chisq')
 
 #### ----------- Vulpia infls. per plant
 
 # Doesn't converge -------------------------------------------------------- 
 # vf1glmer <-
 #   glmer(
-#     infls ~ offset(log_final_count) + stress * treatment + (1 |
+#     infls ~ offset(log_final_count) + position * treatment + (1 |
 #                                                               block),
 #     data = vfdata,
 #     family = 'poisson'
@@ -172,7 +171,7 @@ drop1(stress_effect, test = 'Chisq')
 
 vf1_glm_pois <-
   glm(
-    infls ~ offset(log_final_count) + stress * treatment,
+    infls ~ offset(log_final_count) + position * treatment,
     data = vfdata,
     family = 'poisson'
   )
@@ -181,98 +180,106 @@ summary(vf1_glm_pois)
 
 vf1_glm_qpois <-
   glm(
-    infls ~ offset(log_final_count) + stress * treatment,
+    infls ~ offset(log_final_count) + position * treatment,
     data = vfdata,
     family = 'quasipoisson'
   )
 
 summary(vf1_glm_qpois)
 
-vf2_glm_qpois <- update(vf1_glm_qpois, . ~ . - treatment:stress)
+vf2_glm_qpois <- update(vf1_glm_qpois, . ~ . - treatment:position)
 
 vf1_emmeans <- emmeans(vf1_glm_qpois, 
-                   pairwise ~ treatment | stress, 
+                   pairwise ~ treatment | position, 
                    offset = 0 , 
                    type = 'response')
 
 v_infls <-
   merge(v_infls, 
         data.frame(vf1_emmeans$emmeans), 
-        by = c('treatment', 'stress'))
+        by = c('treatment', 'position'))
 
 
-stress_effect <- glm(
-  infls ~ offset(log_final_count) + stress, data = vfdata[vfdata$treatment == 'Bare sand', ], family = 'quasipoisson'
+position_effect <- glm(
+  infls ~ offset(log_final_count) + position, data = vfdata[vfdata$treatment == 'Bare sand', ], family = 'quasipoisson'
 )
-summary( stress_effect )
-drop1(stress_effect, test = 'Chisq')
+summary( position_effect )
+drop1(position_effect, test = 'Chisq')
 
 #### ---- Bromus success/survival ------------------------------ # 
 
 bm1 <-
   glmer(
-    cbind(final_count, trials - final_count) ~  stress + treatment + treatment:stress + (1 | block),
+    cbind(final_count, trials - final_count) ~  position + treatment + treatment:position + (1 | block),
     data = b,
     family = binomial
   )
 
 
-bm2 <- update(bm1 , . ~ . - treatment:stress)
+bm2 <- update(bm1 , . ~ . - treatment:position)
+
+summary(bm1 )
+drop1(bm1, test = 'Chisq')
 
 bm1_emmeans <-
-  emmeans(bm1, pairwise ~ treatment | stress, 
+  emmeans(bm1, pairwise ~ treatment | position, 
           type = 'response')
+
+
 
 b_success <-
   merge(b_success, 
         data.frame(bm1_emmeans$emmeans), 
-        by = c('treatment', 'stress'))
+        by = c('treatment', 'position'))
 
 
-stress_effect <- glm(
-  cbind(final_count, trials - final_count ) ~ stress, data = b[b$treatment == 'Bare sand', ], 
+position_effect <- glm(
+  cbind(final_count, trials - final_count ) ~ position, data = b[b$treatment == 'Bare sand', ], 
   family = binomial
 )
 
-summary( stress_effect )
-drop1(stress_effect, test = 'Chisq')
+summary( position_effect )
+
+drop1(position_effect, test = 'Chisq')
 
 #### --------- Bromus mass per plant ---------- # 
 bb1 <-
-  lmer(l_mass ~ stress * treatment + (1 | block),
+  lmer(l_mass ~ position * treatment + (1 | block),
        data = b,
        REML = FALSE)
 
-bb2 <- update(bb1, . ~ . - treatment:stress)
+bb2 <- update(bb1, . ~ . - treatment:position)
 bb1 <- update(bb1, REML = TRUE)
 
-bb1_emmeans <- emmeans(bb1, pairwise ~ treatment | stress , 
+bb1_emmeans <- emmeans(bb1, pairwise ~ treatment | position , 
                        type = 'response')
 
+emmeans(bb1, pairwise ~ position | treatment , 
+                       type = 'response')
 
 bb2_emmeans <- emmeans(bb2, pairwise  ~ treatment, type = 'response')
-
 bb2_emmeans
+
 
 b_size <-
   merge(b_size, 
         data.frame(bb1_emmeans$emmeans), 
-        by = c('treatment', 'stress'))
+        by = c('treatment', 'position'))
 
 
-stress_effect <- lm(
-  l_mass ~ stress, data = b[b$treatment == 'Bare sand', ]
+position_effect <- lm(
+  l_mass ~ position, data = b[b$treatment == 'Bare sand', ]
 )
 
-summary( stress_effect )
-drop1( stress_effect , test = 'Chisq')
+summary( position_effect )
+drop1( position_effect , test = 'Chisq')
 
 #### ----------- Bromus infls. per plant
 
 # Doesn't converge -------------------------------------------------------- 
 # bf1glmer <-
 #   glmer(
-#     infls ~ offset(log_final_count) + stress * treatment + (1 | block),
+#     infls ~ offset(log_final_count) + position * treatment + (1 | block),
 #     data = bfdata,
 #     family = 'poisson'
 #   )
@@ -281,7 +288,7 @@ drop1( stress_effect , test = 'Chisq')
 
 bf1_glm_pois <-
   glm(
-    infls ~ offset(log_final_count) + stress * treatment,
+    infls ~ offset(log_final_count) + position * treatment,
     data = bfdata,
     family = 'poisson'
   )
@@ -290,32 +297,32 @@ summary(bf1_glm_pois)
 
 bf1_glm_qpois <-
   glm(
-    infls ~ offset(log_final_count) + stress * treatment,
+    infls ~ offset(log_final_count) + position * treatment,
     data = bfdata,
     family = 'quasipoisson'
   )
 
 summary(bf1_glm_qpois)
 
-bf2_glm_qpois <- update(bf1_glm_qpois, . ~ . - treatment:stress)
+bf2_glm_qpois <- update(bf1_glm_qpois, . ~ . - treatment:position)
 
 bf1_emmeans <- emmeans(bf1_glm_qpois, 
-                       pairwise ~ treatment | stress, 
+                       pairwise ~ treatment | position, 
                        offset = 0 , 
                        type = 'response')
 
 b_infls <-
   merge(b_infls, 
         data.frame(bf1_emmeans$emmeans), 
-        by = c('treatment', 'stress'))
+        by = c('treatment', 'position'))
 
-stress_effect <- glm(
-  infls ~ offset( log_final_count) + stress, data = bfdata[bfdata$treatment == 'Bare sand', ]
+position_effect <- glm(
+  infls ~ offset( log_final_count) + position, data = bfdata[bfdata$treatment == 'Bare sand', ]
 )
 
-summary( stress_effect )
+summary( position_effect )
 
-drop1( stress_effect, test = 'Chisq')
+drop1( position_effect, test = 'Chisq')
 
 # Save processed data for figures -------------------------- #
 

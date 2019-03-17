@@ -99,10 +99,11 @@ p1 <- ggplot(subset(coverLong, Category %in% c('Moss patch', 'Bare sand', 'Shrub
         axis.title.x = element_text(margin = margin(c(10, 0, 0, 0)))) 
 
 p1_mod <- 
-  ggdraw(p1 + ylim( 0, 1)) + 
-  draw_text(c('Low\nStress', 'High\nStress'), 
-            x = c(0.05, 0.75), 
-            y = 0.15, size = 15)
+  ggdraw(p1 + ylim( 0, 1))
+# + 
+#   draw_text(c('Low\nStress', 'High\nStress'), 
+#             x = c(0.05, 0.75), 
+#             y = 0.15, size = 15)
 
 coverWide <- 
   coverLong %>% 
@@ -196,10 +197,12 @@ p3_comb <- cowplot::plot_grid(p3,
                               p2_legend, ncol = 2, rel_widths = c(1, 0.3))
 
 p3_mod <- 
-  ggdraw(p3_comb) + 
-  draw_text(c('Low\nStress', 'High\nStress'), 
-            x = c(0.06, 0.82), 
-            y = 0.17, size = 15)
+  ggdraw(p3_comb) 
+# + 
+#   draw_text(c('Low\nStress', 'High\nStress'), 
+#             x = c(0.06, 0.82), 
+#             y = 0.17, size = 15)
+
 p3_mod
 
 ### Print plots out ----------------------------- # 
@@ -275,10 +278,11 @@ hit_plot <- cowplot::plot_grid(hit_plot,
                                p2_legend, ncol = 2, rel_widths = c(1, 0.3))
 
 hit_plot <- 
-  ggdraw(hit_plot) + 
-  draw_text(c('Low\nStress', 'High\nStress'), 
-            x = c(0.06, 0.82), 
-            y = 0.17, size = 15)
+  ggdraw(hit_plot) 
+# + 
+  # draw_text(c('Low\nStress', 'High\nStress'), 
+  #           x = c(0.06, 0.82), 
+  #           y = 0.17, size = 15)
 
 ggsave(filename= 'figures/vulpHits.png',  
        plot = hit_plot, height= 5, width = 8, units= 'in', dpi = 300 )
@@ -302,10 +306,12 @@ hit_plot <- p3 %+% hit_data + ggtitle('Bromus')
 hit_plot <- cowplot::plot_grid(hit_plot, p2_legend , ncol = 2, rel_widths = c(1, 0.3))
 
 hit_plot <- 
-  ggdraw(hit_plot) + 
-  draw_text(c('Low\nStress', 'High\nStress'), 
-            x = c(0.06, 0.82), 
-            y = 0.17, size = 15)
+  ggdraw(hit_plot) 
+
+# + 
+#   draw_text(c('Low\nStress', 'High\nStress'), 
+#             x = c(0.06, 0.82), 
+#             y = 0.17, size = 15)
 
 ggsave(filename= 'figures/brdiHits.png',  
        plot = hit_plot, height= 5, width = 8, units= 'in', dpi = 300 )
@@ -329,10 +335,11 @@ hit_plot <- cowplot::plot_grid(hit_plot,
                                p2_legend, ncol = 2, rel_widths = c(1, 0.3))
 
 hit_plot <- 
-  ggdraw(hit_plot) + 
-  draw_text(c('Low\nStress', 'High\nStress'), 
-            x = c(0.06, 0.82), 
-            y = 0.17, size = 15)
+  ggdraw(hit_plot) 
+# + 
+#   draw_text(c('Low\nStress', 'High\nStress'), 
+#             x = c(0.06, 0.82), 
+#             y = 0.17, size = 15)
 
 ggsave(filename= 'figures/agrassHits.png',  
        plot = hit_plot, height= 5, width = 8, units= 'in', dpi = 300 )
@@ -365,10 +372,11 @@ hit_plot <- cowplot::plot_grid(hit_plot,
                                p2_legend, ncol = 2, rel_widths = c(1, 0.3))
 
 hit_plot <- 
-  ggdraw(hit_plot) + 
-  draw_text(c('Low\nStress', 'High\nStress'), 
-            x = c(0.06, 0.82), 
-            y = 0.17, size = 15)
+  ggdraw(hit_plot) 
+# + 
+#   draw_text(c('Low\nStress', 'High\nStress'), 
+#             x = c(0.06, 0.82), 
+#             y = 0.17, size = 15)
 
 
 ggsave(filename= 'figures/eHits.png',  
@@ -396,10 +404,11 @@ hit_plot <- cowplot::plot_grid(hit_plot,
                                p2_legend, ncol = 2, rel_widths = c(1, 0.3))
 
 hit_plot <- 
-  ggdraw(hit_plot) + 
-  draw_text(c('Low\nStress', 'High\nStress'), 
-            x = c(0.06, 0.82), 
-            y = 0.17, size = 15)
+  ggdraw(hit_plot) 
+# + 
+#   draw_text(c('Low\nStress', 'High\nStress'), 
+#             x = c(0.06, 0.82), 
+#             y = 0.17, size = 15)
 
 ggsave(filename= 'figures/nHits.png',  
        plot = hit_plot, height= 5, width = 8, units= 'in', dpi = 300 )
