@@ -1,4 +1,4 @@
-## Computer Code for "Effects of native bryophytes on exotic grass invasion: a test of the stress gradient hypothesis"
+## Computer Code for "Effects of native bryophytes on exotic grass invasion across an environmental gradient"
 
 This directory contains all R scripts necessary to run the simulations and analyses and generate the figures presented in the manuscript. 
 
