@@ -22,13 +22,14 @@ panderOptions('round',2)
 panderOptions('digits',10)
 panderOptions('keep.trailing.zeros',TRUE)
 
-load(file = '../output/experiment_models.rda') 
+load(file = '~/Dropbox/projects/moss_analysis/output/experiment_models.rda')
+
 
 
 make_lrt_table <- function(m1) { 
-  m2 <- update(m1, . ~ . - stress:treatment)
+  m2 <- update(m1, . ~ . - position:treatment)
   m3 <- update(m2, . ~ . - treatment)
-  m4 <- update(m3, . ~ . - stress)
+  m4 <- update(m3, . ~ . - position)
   
   LRT_table <- broom::tidy( anova(m4, m3, m2, m1))
   
@@ -38,7 +39,7 @@ make_lrt_table <- function(m1) {
     rename( '$\\chi^2$' = statistic ) %>% 
     rename( 'Df' = Chi.Df) %>%
     rename( 'P(>$\\chi^2$)' = p.value ) %>% 
-    mutate( term = factor(term, labels = c('stress:treatment', 'treatment', 'stress', 'NULL' )))
+    mutate( term = factor(term, labels = c('position:treatment', 'treatment', 'position', 'NULL' )))
   
   return(LRT_table)
 }
@@ -75,10 +76,10 @@ pander(B_surv_table)
 ### Table 2. Multiple comparison test Bromus survival. P-values are adjusted by Sidak method for three tests. 
 ```{r echo=FALSE, warning=FALSE, message = FALSE}
 
-bm_emeans <- emmeans(bm1, pairwise ~ treatment | stress, adj = 'sidak' )
+bm_emeans <- emmeans(bm1, pairwise ~ treatment | position, adj = 'sidak' )
 
 bm_mct <- broom::tidy ( bm_emeans$contrasts ) %>% 
-  mutate( stress = str_extract(stress, pattern = '^[A-Za-z]+')) %>% 
+  mutate( position = str_extract(position, pattern = '^[A-Za-z]+')) %>% 
   rename('z-val' = z.ratio, 
          'p-val' = p.value)
 
@@ -106,11 +107,11 @@ pander(B_mass_table)
 ### Table 4. Multiple comparison test Bromus biomass.  P-values are adjusted by Sidak method for three tests. 
 ```{r echo=FALSE, warning=FALSE}
 
-bb_emeans <- emmeans(bb1, pairwise ~ treatment | stress , adj = 'sidak')
+bb_emeans <- emmeans(bb1, pairwise ~ treatment | position , adj = 'sidak')
 
 
 bb_mct <- broom::tidy ( bb_emeans$contrasts ) %>% 
-  mutate( stress = str_extract(stress, pattern = '^[A-Za-z]+')) %>% 
+  mutate( position = str_extract(position, pattern = '^[A-Za-z]+')) %>% 
   rename('t-val' = statistic, 
          'p-val' = p.value)
 
@@ -132,10 +133,10 @@ make_infls_table(bf1_glm_qpois)
 ### Table 6. Multiple comparison Bromus inflorescence numbers. P-values are adjusted by Sidak method for three tests. 
 ```{r echo=FALSE, warning=FALSE}
 
-bf_emeans <- emmeans(bf1_glm_qpois, pairwise ~ treatment | stress , adj = 'sidak')
+bf_emeans <- emmeans(bf1_glm_qpois, pairwise ~ treatment | position , adj = 'sidak')
 
 bf_mct <- broom::tidy ( bf_emeans$contrasts ) %>% 
-  mutate( stress = str_extract(stress, pattern = '^[A-Za-z]+')) %>% 
+  mutate( position = str_extract(position, pattern = '^[A-Za-z]+')) %>% 
   rename('z-val' = z.ratio, 
          'p-val' = p.value)
 
@@ -160,10 +161,10 @@ pander(V_surv_table)
 ### Table 8. Multiple comparison for Vulpia survival. P-values are adjusted by Sidak method for three tests. 
 ```{r echo=FALSE, warning=FALSE, message = FALSE}
 
-vm_emeans <- emmeans(vm1, pairwise ~ treatment | stress , adj = 'sidak')
+vm_emeans <- emmeans(vm1, pairwise ~ treatment | position , adj = 'sidak')
 
 vm_mct <- broom::tidy ( vm_emeans$contrasts ) %>% 
-  mutate( stress = str_extract(stress, pattern = '^[A-Za-z]+')) %>% 
+  mutate( position = str_extract(position, pattern = '^[A-Za-z]+')) %>% 
   rename('z-val' = z.ratio, 
          'p-val' = p.value)
 
