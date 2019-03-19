@@ -1,5 +1,5 @@
-# All analyses for "Moss controls exotic annual grass invasion: 
-# a test of the stress gradient hypothesis" 
+# All analyses for "Moss controls exotic annual grass invasion 
+# across an environmental gradient" 
 # 
 # Note:  To run all the scripts for the analysis set the working directory to 
 # the 'moss_manuscript' folder then run this script. All scripts and data files
