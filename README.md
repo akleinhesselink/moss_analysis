@@ -60,16 +60,14 @@ os             darwin15.6.0
 system         x86_64, darwin15.6.0        
 status                                     
 major          3                           
-minor          5.1                         
-year           2018                        
-month          07                          
-day            02                          
-svn rev        74947                       
+minor          5.3                         
+year           2019                        
+month          03                          
+day            11                          
+svn rev        76217                       
 language       R                           
-version.string R version 3.5.1 (2018-07-02)
-nickname       Feather Spray 
-
-Rstudio        Version 1.1.423 
+version.string R version 3.5.3 (2019-03-11)
+nickname       Great Truth 
 
 ### Required R packages 
 
