@@ -18,13 +18,12 @@ library(stringr)
 library(pander)
 library(emmeans)
 
-panderOptions('round',2)
+panderOptions('round',c(2,2,2,2,2, 1, 3))
 panderOptions('digits',10)
 panderOptions('keep.trailing.zeros',TRUE)
+panderOptions('table.split.table', 85)
 
 load(file = '~/Dropbox/projects/moss_analysis/output/experiment_models.rda')
-
-
 
 make_lrt_table <- function(m1) { 
   m2 <- update(m1, . ~ . - position:treatment)
@@ -35,7 +34,7 @@ make_lrt_table <- function(m1) {
   
   LRT_table <- 
     LRT_table %>% 
-    dplyr::select(-BIC) %>% 
+    dplyr::select(-BIC, -df ) %>% 
     rename( '$\\chi^2$' = statistic ) %>% 
     rename( 'Df' = Chi.Df) %>%
     rename( 'P(>$\\chi^2$)' = p.value ) %>% 
@@ -57,8 +56,41 @@ make_infls_table <- function(m_infls){
     pander
 }
 
-
-
+make_mct_table <- function( emtab ) { 
+  
+  
+  mctab <- broom::tidy ( emtab$contrasts ) 
+  
+  if( 'position' %in% names(mctab) ) { 
+    
+    mctab <- 
+      mctab %>% 
+      mutate( position = str_extract(position, pattern = '^[A-Za-z]+')) 
+  }
+  
+  
+  if( "z.ratio" %in% names(mctab) ){ 
+    
+    mctab <- 
+      mctab %>% 
+      rename('z-val' = z.ratio, 
+             'p-val' = p.value)
+  
+  }else if( "statistic" %in% names(mctab)){ 
+    
+    mctab <- 
+      mctab %>% 
+      rename('t-val' = statistic, 
+             'p-val' = p.value)
+  }
+  
+  mctab <- 
+    mctab %>% 
+    mutate( level1 = str_trim(str_remove_all(level1, 'patch'))) %>% 
+    unite("Contrast", c('level1', 'level2'), sep = ' - ' )
+  
+  return(mctab)
+}
 
 ```
 
@@ -73,19 +105,13 @@ pander(B_surv_table)
 
 -----------------------------------
 
-### Table 2. Multiple comparison test Bromus survival. P-values are adjusted by Sidak method for three tests. 
+### Table 2. Multiple comparison test Bromus survival. Results are given on the log odds ratio (not the response) scale. P-values are adjusted by Sidak method for three tests. 
 ```{r echo=FALSE, warning=FALSE, message = FALSE}
 
 bm_emeans <- emmeans(bm1, pairwise ~ treatment | position, adj = 'sidak' )
 
-bm_mct <- broom::tidy ( bm_emeans$contrasts ) %>% 
-  mutate( position = str_extract(position, pattern = '^[A-Za-z]+')) %>% 
-  rename('z-val' = z.ratio, 
-         'p-val' = p.value)
-
-
-pander ( bm_mct)
-
+make_mct_table(bm_emeans) %>%
+  pander()
 
 ```
 
@@ -107,15 +133,16 @@ pander(B_mass_table)
 ### Table 4. Multiple comparison test Bromus biomass.  P-values are adjusted by Sidak method for three tests. 
 ```{r echo=FALSE, warning=FALSE}
 
-bb_emeans <- emmeans(bb1, pairwise ~ treatment | position , adj = 'sidak')
+bb2 <- update(bb1, . ~ . - treatment:position)
+#bb_emeans <- emmeans(bb1, pairwise ~ treatment, adj = 'sidak')
 
+bb_emeans_no_interaction <- emmeans(bb2, pairwise ~ treatment, adj = 'sidak')  # no treatment*position effect so use only treatment 
 
-bb_mct <- broom::tidy ( bb_emeans$contrasts ) %>% 
-  mutate( position = str_extract(position, pattern = '^[A-Za-z]+')) %>% 
-  rename('t-val' = statistic, 
-         'p-val' = p.value)
+#make_mct_table(bb_emeans) %>% pander()
 
-pander ( bb_mct ) 
+panderOptions('round',c(2,2,2,2,2,3))
+make_mct_table(bb_emeans_no_interaction) %>% pander()
+panderOptions('round',c(2,2,2,2,2, 1, 3))
 
 ```
 
@@ -125,24 +152,18 @@ pander ( bb_mct )
 ### Table 5. Fixed effects on Bromus inflorescence production
 ```{r echo=FALSE, warning=FALSE}
 
+
 make_infls_table(bf1_glm_qpois)
 
 ```
 -----------------------------------
 
-### Table 6. Multiple comparison Bromus inflorescence numbers. P-values are adjusted by Sidak method for three tests. 
+### Table 6. Multiple comparison Bromus inflorescence numbers. Results are given on the log (not the response) scale. P-values are adjusted by Sidak method for three tests. 
 ```{r echo=FALSE, warning=FALSE}
 
 bf_emeans <- emmeans(bf1_glm_qpois, pairwise ~ treatment | position , adj = 'sidak')
 
-bf_mct <- broom::tidy ( bf_emeans$contrasts ) %>% 
-  mutate( position = str_extract(position, pattern = '^[A-Za-z]+')) %>% 
-  rename('z-val' = z.ratio, 
-         'p-val' = p.value)
-
-pander ( bf_mct ) 
-
-
+make_mct_table(bf_emeans) %>% pander()
 
 ```
 
@@ -152,23 +173,27 @@ pander ( bf_mct )
 ### Table 7. Fixed effects on Vulpia survival
 ```{r echo=FALSE, warning=FALSE}
 
+
 V_surv_table <- make_lrt_table(vm1)
 pander(V_surv_table)
 
 ```
 -----------------------------------
 
-### Table 8. Multiple comparison for Vulpia survival. P-values are adjusted by Sidak method for three tests. 
+### Table 8. Multiple comparison for Vulpia survival. Results are given on the log odds ratio (not the response) scale. P-values are adjusted by Sidak method for three tests. 
 ```{r echo=FALSE, warning=FALSE, message = FALSE}
 
-vm_emeans <- emmeans(vm1, pairwise ~ treatment | position , adj = 'sidak')
+vm2 <- update(vm1, . ~ . - treatment:position)  # no signifcant interaction effect 
 
-vm_mct <- broom::tidy ( vm_emeans$contrasts ) %>% 
-  mutate( position = str_extract(position, pattern = '^[A-Za-z]+')) %>% 
-  rename('z-val' = z.ratio, 
-         'p-val' = p.value)
+#vm_emeans <- emmeans(vm1, pairwise ~ treatment | position , adj = 'sidak')
 
-pander ( vm_mct ) 
+vm_emeans_no_interaction <- emmeans(vm2, pairwise ~ treatment, adj = 'sidak') # no position x treatment effect or position effect 
+
+panderOptions('round',c(2,2,2,2,2,3))
+
+make_mct_table(vm_emeans_no_interaction) %>% pander()
+
+panderOptions('round',c(2,2,2,2,2, 1, 3))
 
 
 ```
@@ -179,6 +204,7 @@ pander ( vm_mct )
 ### Table 9. Fixed effects on Vulpia aboveground biomass
 ```{r echo=FALSE, warning=FALSE}
 
+
 V_mass_table <- make_lrt_table(vb1)
 pander(V_mass_table)
 
@@ -188,6 +214,7 @@ pander(V_mass_table)
 
 ### Table 10. Fixed effects on Vulpia inflorescence production
 ```{r echo=FALSE, warning=FALSE}
+
 
 make_infls_table(vf1_glm_qpois)
 
