@@ -1,11 +1,10 @@
 ---
-title: "Statistical Tables for Moss Removal Experiment"
+title: "Statistical tests of moss removal experiment"
+
 author: "Andrew Kleinhesselink"
-date: "12/18/2018"
-output: 
-  word_document:
-    reference_docx: 
-      word-style-template.docx
+date: "2019-05-02"
+output:
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -94,6 +93,8 @@ make_mct_table <- function( emtab ) {
 
 ```
 
+These tables here give the statistics reported in the results section of "Effects of native bryophytes on exotic grass invasion across an environmental gradient". 
+
 
 ### Table 1. Fixed effects on Bromus survival
 ```{r echo=FALSE, warning=FALSE}
@@ -105,7 +106,7 @@ pander(B_surv_table)
 
 -----------------------------------
 
-### Table 2. Multiple comparison test Bromus survival. Results are given on the log odds ratio (not the response) scale. P-values are adjusted by Sidak method for three tests. 
+### Table 2. Multiple comparison test Bromus survival. Results are given on the log odds ratio (not the response) scale. P-values are adjusted by Sidak method for 15 tests. 
 ```{r echo=FALSE, warning=FALSE, message = FALSE}
 
 bm_emeans <- emmeans(bm1, pairwise ~ treatment * position, adj = 'sidak' )
@@ -120,11 +121,7 @@ panderOptions('round',c(2,2,2,2,2,3))
 
 ```
 
-
-
 -----------------------------------
-
-
 
 ### Table 3. Fixed effects on Bromus aboveground biomass
 ```{r echo=FALSE, warning=FALSE}

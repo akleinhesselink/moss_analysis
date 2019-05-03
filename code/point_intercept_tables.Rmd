@@ -1,11 +1,9 @@
 ---
-title: "Statistical Tables for Vascular Plant Association with Moss"
+title: "Statistical tests for vascular plant association with moss"
 author: "Andrew Kleinhesselink"
-date: "12/18/2018"
+date: "2019-05-03"
 output: 
-  word_document:
-    reference_docx: 
-      word-style-template.docx
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -18,6 +16,7 @@ load(file = '~/Dropbox/projects/moss_analysis/output/point_intercept_models.rda'
 
 ```
 
+These tables here give the statistics reported in the results section of "Effects of native bryophytes on exotic grass invasion across an environmental gradient".
 
 ### Table 1. Summary of linear model for moss cover across the gradient 
 ```{r echo = F}
