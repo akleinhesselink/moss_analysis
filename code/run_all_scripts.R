@@ -14,6 +14,9 @@ library(gridExtra)
 library(cowplot)
 library(lme4)
 library(emmeans)
+library(pander)
+library(broom)
+library(rmarkdown)
 
 source( 'code/point_intercept_analysis.R' )
 

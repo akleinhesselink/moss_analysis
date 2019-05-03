@@ -28,11 +28,11 @@ The 'code' directory contains all the R scripts. The best way to recreate the an
  
   Generate figure showing response of annual grasses to moss removal across stress gradient. 
   
-6. print_association_model_tables.Rmd
+6. point_intercept_tables.Rmd
 
   Generate summary statistics tables and summarize the statistcal tests for observational data. Saves output as a word document.  Requires that the previous scripts have been run. 
 
-7. print_experiment_tables.Rmd
+7. experiment_tables.Rmd
   
   Generate summary statistics tables and summarize the statistcal tests for experimental data. Saves output as a word document.  Requires that the previous scripts have been run. 
 
@@ -60,16 +60,14 @@ os             darwin15.6.0
 system         x86_64, darwin15.6.0        
 status                                     
 major          3                           
-minor          5.1                         
-year           2018                        
-month          07                          
-day            02                          
-svn rev        74947                       
+minor          5.3                         
+year           2019                        
+month          03                          
+day            11                          
+svn rev        76217                       
 language       R                           
-version.string R version 3.5.1 (2018-07-02)
-nickname       Feather Spray 
-
-Rstudio        Version 1.1.423 
+version.string R version 3.5.3 (2019-03-11)
+nickname       Great Truth 
 
 ### Required R packages 
 
@@ -79,9 +77,9 @@ Rstudio        Version 1.1.423
 4. cowplot_0.9.3
 5. emmeans_1.3.0
 6. scales_1.0.0
-7. stringr_1.3.1
-8. ggplot2_3.1.0
 9. rmarkdown_1.10
+10. pander_0.6.3
+11. broom_0.5.2
 
 ### Authors 
 
