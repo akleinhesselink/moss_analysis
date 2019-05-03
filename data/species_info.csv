@@ -1,31 +1,31 @@
-﻿origin,species
-native,amsp
-native,apoc
-exotic,brdi
-native,caci
-native,cach
-native,cast
-native,cara
-exotic,caed
-exotic,cegl
-native,chcu
-native,clpe
-native,crco
-native,crle
-native,dapu
-native,erla
-exotic,erci
-native,esca
-native,gimi
-native,hesp
-exotic,hygl
-native,jule
-native,lica
-native,nepe
-exotic,poan
-native,podo
-native,poun
-exotic,pote
-exotic,ruac
-exotic,stme
-exotic,vubr
+origin,species,full_name
+native,amsp,Amsinckia spectabilis
+native,apoc,Aphanes occidentalis
+exotic,brdi,Bromus diandrus
+native,caci,Calandrinia ciliata
+native,cach,Camissonia cheiranthifolia
+native,cast,Camissonia strigulosa
+native,cara,Cardionema ramosissimum
+exotic,caed,Carpobrotus edulis
+exotic,cegl,Cerastium glomeratum
+native,chcu,Chorizanthe cuspidata
+native,clpe,Claytonia perfoliata
+native,crco,Crassula connata
+native,crle,Cryptantha leiocarpa
+native,dapu,Daucus pusillus
+native,erla,Eriogonum latifolium
+exotic,erci,Erodium cicutarium
+native,esca,Eschscholzia californica
+native,gimi,Gilia millefoliata
+native,hesp,Hesperevax sparsiflora
+exotic,hygl,Hypochaeris glabra
+native,jule,Juncus lesueurii
+native,lica,Linaria canadensis
+native,nepe,Nemophila pedunculata
+exotic,poan,Poa annua
+native,podo,Poa douglasii
+native,poun,Poa unilateralis
+exotic,pote,Polycarpon tetraphyllum
+exotic,ruac,Rumex acetosella
+exotic,stme,Stellaria media
+exotic,vubr,Vulpia bromoides

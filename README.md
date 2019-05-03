@@ -1,56 +1,85 @@
-## Computer Code for "Effects of native bryophytes on exotic grass invasion across an environmental gradient"
+# Computer Code for "Effects of native bryophytes on exotic grass invasion across an environmental gradient"
 
-This directory contains all R scripts necessary to run the simulations and analyses and generate the figures presented in the manuscript. 
+### Reproducing the analyses: 
 
-### Reproducing analyses 
+Open the moss_analysis.Rproj file in the program Rstudio.  This will automatically set the working directory appropriately. Then run the "code/run_all_scripts.R" from within Rstudio. Alternatively, one can set the working directory manually to the "moss_analysis" folder containing the code, data, figures, and output folders.  Then run the "run_all_scripts.R" file. 
 
-The 'code' directory contains all the R scripts. The best way to recreate the analyses in the manuscript is to open the moss_analysis.Rproj file in Rstudio.  This will automatically set the working directory appropriately.  Then run the "code/run_all_scripts.R" file. Alternatively, one can set the working directory manually to the "moss_analysis" folder containing the code, data, figures, and output folders.  Then run the "run_all_scripts.R" file. 
+### Files 
 
-### File details 
 
-1. run_all_scripts.R
+#### 1. data/species_info.csv
 
-  Runs all the data analysis and plotting scripts in the correct order. 
+> Comma seperated value file containing information on the vascular plant species in the observational data. Species names and origin information taken from the Jepson Flora: http://ucjeps.berkeley.edu/eflora/
 
-2. moss_theme.R
+> #### Data Fields: 
+- origin:  native or exotic.  Classify each species as either being native to the Bodega Bay dune community or non-native (exotic). 
+- species: four letter abbreviation used for identifying species.  The four letters correspond to the first two letters of the genus and the first two letters of the species.  
+- full_name:  latin binomial taxon name. 
 
-  plotting parameters for ggplot2 plots 
+#### 2. data/vulpia_data.csv
+
+>Comma seperated value file containing demographic data for Vulpia from moss removal experiment. Each row represents data from one experimental patch. 
+
+> #### Data Fields: 
+- block: block group 1 - 18
+- position: position on the environmental gradient, "SE" or "NW"
+- treatment: moss patch treatment, "MC" = Moss Covered, "MR" = Moss Removed, "BC" = Bare Sand
+- final_count: final number of surviving plants in each experimental patch
+- infls: total number of inflorescences produced by all surviving plants in each patch. 
+- total_mass_mg: total aboveground oven dried biomass (mg) of all surviving plants in each experimental patch. 
+- mass_per_plant_mg: average mass per surviving plant, (total_mass_mg/final_count) 
   
-3. point_intercept_analysis.R
+#### 3. data/brid_data.csv
 
-  Perform analyses and plot observational point intercept data.  
+>Comma seperated value file  containing demographic data for Bromus from moss removal experiment. Each row represents data from one experimental patch. 
 
-4. moss_removal_analysis.R
+> #### Data Fields: 
+- block: block group 1 - 18
+- position: position on the environmental gradient, "SE" or "NW"
+- treatment: moss patch treatment, "MC" = Moss Covered, "MR" = Moss Removed, "BC" = Bare Sand
+- final_count: final number of surviving plants in each experimental patch
+- infls: total number of inflorescences produced by all surviving plants in each patch. 
+- total_mass_mg: total aboveground oven dried biomass (mg) of all surviving plants in each experimental patch. 
+- mass_per_plant_mg: average mass per surviving plant, (total_mass_mg/final_count) 
+  
+#### 4. data/moss_cover.csv
 
-  Perform analysis of experimental moss removal data. 
+>Comma seperated value file containing observational point intercept data on moss and plant cooccurence across the gradient. 
 
-5. moss_removal_experiment_figures.R
+> #### Data Fields: 
+- transect: position in (m) towards the NW on the environmental gradient
+- point: sampling point along transect, 1 - 25
+- cover_category: category for cover at sampled point: "bare", "moss", "ericameria" or "lupine".  Points marked lupine and Ericameria fell within these dominant shrub species at this site. 
+- species: four letter species code for vascular plant intersected at sampled point. "0" if no plant was sampled at that point. 
+
+#### 5. code/run_all_scripts.R
+
+> Runs all the data analysis and plotting scripts in the correct order.
+
+#### 6. code/moss_theme.R
+
+> Plotting parameters for ggplot2 plots 
+  
+#### 7. code/point_intercept_analysis.R
+
+> Perform analyses and plot observational point intercept data.  
+
+#### 8. code/moss_removal_analysis.R
+
+> Perform analysis of experimental moss removal data. 
+
+#### 9. code/moss_removal_experiment_figures.R
  
-  Generate figure showing response of annual grasses to moss removal across stress gradient. 
+> Generate figure showing response of annual grasses to moss removal across stress gradient. 
   
-6. point_intercept_tables.Rmd
+#### 10. code/point_intercept_tables.Rmd
 
-  Generate summary statistics tables and summarize the statistcal tests for observational data. Saves output as a word document.  Requires that the previous scripts have been run. 
+> Generate summary statistics tables and summarize the statistcal tests for observational data. Saves output as a PDF document.  Requires that the previous scripts have been run. 
 
-7. experiment_tables.Rmd
+#### 11. code/experiment_tables.Rmd
   
-  Generate summary statistics tables and summarize the statistcal tests for experimental data. Saves output as a word document.  Requires that the previous scripts have been run. 
+> Generate summary statistics tables and summarize the statistcal tests for experimental data. Saves output as a PDF document.  Requires that the previous scripts have been run. 
 
-8. species_info.csv
-
-  Comma seperated value file containing information on the vascular plant species in the observational data. 
-
-9. vulpia_data.csv
-
-   Comma seperated value file containing demographic data for Vulpia from moss removal experiment. 
-  
-10. brid_data.csv
-
-  Comma seperated value file  containing demographic data for Bromus from moss removal experiment. 
-  
-11. moss_cover.csv
-
-  Comma seperated value file containing observational point intercept data on moss and plant cooccurence across the gradient. 
 
 ### Built With 
 
