@@ -17,3 +17,5 @@ response*.docx
 Response*.docx
 .dropbox
 Icon^M
+code/experiment_tables.docx
+code/point_intercept_tables.docx
