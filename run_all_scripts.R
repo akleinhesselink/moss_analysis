@@ -24,6 +24,6 @@ source( 'code/moss_removal_analysis.R' )
 
 source( 'code/moss_removal_experiment_figures.R')
 
-rmarkdown::render('code/point_intercept_tables.Rmd')
+rmarkdown::render('code/point_intercept_tables.Rmd', output_dir = 'output')
 
-rmarkdown::render('code/experiment_tables.Rmd')
+rmarkdown::render('code/experiment_tables.Rmd', output_dir = 'output')
