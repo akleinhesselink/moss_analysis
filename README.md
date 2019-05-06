@@ -1,8 +1,10 @@
-# Computer Code for "Effects of native bryophytes on exotic grass invasion across an environmental gradient"
+## Computer Code for "Effects of native bryophytes on exotic grass invasion across an environmental gradient" a manuscript accepted for publication in *Ecosphere*. 
 
 ### Reproducing the analyses: 
 
-Open the moss_analysis.Rproj file in the program Rstudio.  This will automatically set the working directory appropriately. Then run the "code/run_all_scripts.R" from within Rstudio. Alternatively, one can set the working directory manually to the "moss_analysis" folder containing the code, data, figures, and output folders.  Then run the "run_all_scripts.R" file. 
+Open the moss_analysis.Rproj file in the program Rstudio.  This will automatically set the working directory appropriately. Then run "run_all_scripts.R" from within Rstudio. Alternatively, one can set the working directory manually to the "moss_analysis" folder containing the code, data, figures, and output folders.  Then run the "run_all_scripts.R" file. 
+
+When using this data please cite Kleinhesselink, Andrew, R. and J. Hall Cushman. 2019. "Effects of native bryophytes on exotic grass invasion across an environmental gradient". Ecosphere. 
 
 ### Files 
 
@@ -52,7 +54,7 @@ Open the moss_analysis.Rproj file in the program Rstudio.  This will automatical
 - cover_category: category for cover at sampled point: "bare", "moss", "ericameria" or "lupine".  Points marked lupine and Ericameria fell within these dominant shrub species at this site. 
 - species: four letter species code for vascular plant intersected at sampled point. "0" if no plant was sampled at that point. 
 
-#### 5. code/run_all_scripts.R
+#### 5. run_all_scripts.R
 
 > Runs all the data analysis and plotting scripts in the correct order.
 
